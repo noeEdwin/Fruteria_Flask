@@ -1,0 +1,9 @@
+{% extends "base.html" %} {% block title %}Dashboard{% endblock %} {% block
+content %}
+<h2>Bienvenido, {{ user.nombre_completo or user.username }}</h2>
+<p>Esta es una ruta protegida. Solo puedes verla si has iniciado sesión.</p>
+
+<a href="{{ url_for('logout') }}" class="btn btn-outline-danger mt-3">
+  Cerrar sesión
+</a>
+{% endblock %}

@@ -1,0 +1,26 @@
+body {
+  background-color: #f2f4f7;
+}
+
+.login-card {
+  background-color: #ffffff;
+  max-width: 900px;
+  width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.login-avatar {
+  background: radial-gradient(
+    circle at center,
+    #e889ff 0,
+    #b276ff 60%,
+    #9b5bff 100%
+  );
+}
+
+.avatar-img {
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+}
