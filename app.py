@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from config.db import get_cursor, get_db, close_db
 
 app = Flask(__name__)
+app.secret_key = 'fruteria_super_secreta'  
 
 # ------------- Flask-Login -------------
 login_manager = LoginManager(app)

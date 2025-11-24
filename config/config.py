@@ -1,7 +1,7 @@
 # config.py
 
 DB_CONFIG = {
-    "dbname": "ModeloWEFE",
+    "dbname": "fruteria_db",
     "user": "postgres",
     "password": "9474609",
     "host": "localhost",
