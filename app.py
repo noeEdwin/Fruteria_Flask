@@ -4,15 +4,13 @@ from flask_login import (
     logout_user, login_required, current_user
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from config.db import get_cursor, get_db, close_db
 
 app = Flask(__name__)
-app.secret_key = "replace-with-a-secure-random-key"  # IMPORTANT: change in production
 
 # ------------- Flask-Login -------------
 login_manager = LoginManager(app)
-login_manager.login_view = "login"  # si no está logueado, lo manda a /login
+login_manager.login_view = "login"  
 
 
 # --------- Clase User para Flask-Login (sin ORM) ----------
@@ -58,25 +56,6 @@ def load_user(user_id):
 def teardown_db(exception):
     close_db(exception)
 
-
-# ---------- Ruta de prueba para crear un usuario demo ----------
-@app.route("/crear_usuario_demo")
-def crear_usuario_demo():
-    """Crea un usuario admin/admin123 solo para pruebas."""
-    password_plano = "admin123"
-    hash_pw = generate_password_hash(password_plano)
-
-    conn = get_db()
-    # Insert into 'empleado' according to your DDL. Use username UNIQUE to avoid duplicates.
-    with get_cursor(dict_cursor=False) as cur:
-        cur.execute(
-            "INSERT INTO empleado (id_e, nombre, turno, salario, username, password) "
-            "VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (username) DO NOTHING",
-            (1, "Administrador", "Mañana", 0.00, "admin", hash_pw),
-        )
-        conn.commit()
-
-    return "Usuario 'admin' creado con password 'admin123' (borra esta ruta en producción)"
 
 
 # ------------------- LOGIN -------------------

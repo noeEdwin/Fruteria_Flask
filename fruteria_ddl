@@ -1,0 +1,98 @@
+CREATE SCHEMA IF NOT EXISTS fruteria AUTHORIZATION postgres;
+
+SET search_path TO fruteria;
+
+CREATE TABLE producto(
+    codigo INTEGER PRIMARY KEY,
+    descripcion VARCHAR(50),
+    categoria VARCHAR(50),
+    unidad_medida VARCHAR(20),
+    existencia INTEGER,
+    precio_c numeric (8,2),
+    precio_v numeric (8,2)
+);
+
+CREATE TABLE proveedor(
+    id_p INTEGER PRIMARY KEY,
+    nombre VARCHAR(80),
+    ciudad VARCHAR(30),
+    contacto VARCHAR(70),
+    tel_contacto VARCHAR(20)
+);
+
+CREATE TABLE producto_proveedor(
+    codigo INTEGER,
+    id_p INTEGER,
+    FOREIGN KEY (codigo) REFERENCES producto(codigo),
+    FOREIGN KEY (id_p) REFERENCES proveedor(id_p)
+);
+
+CREATE TABLE cliente(
+    id_c INTEGER PRIMARY KEY,
+    telefono VARCHAR(12),
+    rfc VARCHAR(16),
+    domicilio VARCHAR(50)
+);
+
+CREATE TABLE p_moral(
+    id_c INTEGER,
+    razon_social VARCHAR(50),
+    FOREIGN KEY (id_c) REFERENCES cliente(id_c)
+);
+
+CREATE TABLE p_fisica(
+    id_c INTEGER,
+    nombre VARCHAR(25),
+    FOREIGN KEY (id_c) REFERENCES cliente(id_c)
+);
+
+-- Tabla corregida y limpia
+CREATE TABLE empleado(
+    id_e INTEGER PRIMARY KEY,
+    nombre VARCHAR(60),
+    turno VARCHAR(20),
+    salario NUMERIC(14,2),
+    username VARCHAR(150) UNIQUE,
+    password VARCHAR(128),
+    last_login TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN DEFAULT true,
+    is_staff BOOLEAN DEFAULT false,
+    is_superuser BOOLEAN DEFAULT false
+);
+
+CREATE TABLE supervisor(
+    id_e INTEGER,
+    id_s INTEGER,
+    FOREIGN KEY (id_e) REFERENCES empleado(id_e),
+    FOREIGN KEY (id_s) REFERENCES empleado(id_e)
+);
+
+CREATE TABLE venta(
+    folio_v INTEGER PRIMARY KEY,
+    fecha DATE,
+    id_c integer,
+    id_e integer
+);
+
+CREATE TABLE detalle_venta(
+    codigo integer,
+    folio_v integer,
+    observaciones varchar(50),
+    cantidad integer,
+    FOREIGN KEY (codigo) REFERENCES producto(codigo),
+    FOREIGN KEY (folio_v) REFERENCES venta(folio_v)
+);
+
+CREATE TABLE compra(
+    folio_c INTEGER PRIMARY KEY,
+    no_lote INTEGER,
+    fecha DATE,
+    id_p integer references proveedor (id_p),
+    id_e integer references empleado (id_e)
+);
+
+CREATE TABLE detalle_compra(
+    folio_c integer references compra (folio_c),
+    codigo integer REFERENCES producto(codigo),
+    cantidad integer 
+);
