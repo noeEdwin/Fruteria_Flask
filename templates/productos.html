@@ -1,0 +1,183 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Productos - Frutería{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">Productos</h2>
+        <button type="button" class="btn btn-dark rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="bi bi-plus-lg me-2"></i> Nuevo Producto
+        </button>
+    </div>
+
+    <!-- Minimalist Table -->
+    <div class="table-responsive shadow-sm rounded bg-white p-4">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" class="text-secondary text-uppercase small">Código</th>
+                    <th scope="col" class="text-secondary text-uppercase small">Descripción</th>
+                    <th scope="col" class="text-secondary text-uppercase small">Categoría</th>
+                    <th scope="col" class="text-secondary text-uppercase small">Unidad</th>
+                    <th scope="col" class="text-secondary text-uppercase small">Existencia</th>
+                    <th scope="col" class="text-secondary text-uppercase small">Costo</th>
+                    <th scope="col" class="text-secondary text-uppercase small">Venta</th>
+                    <th scope="col" class="text-end text-secondary text-uppercase small">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in productos %}
+                <tr>
+                    <td class="fw-bold text-muted">#{{ p.codigo }}</td>
+                    <td>{{ p.descripcion }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ p.categoria }}</span></td>
+                    <td class="text-muted small">{{ p.unidad_medida }}</td>
+                    <td>
+                        {% if p.existencia < 10 %}
+                            <span class="text-danger fw-bold">{{ p.existencia }}</span>
+                        {% else %}
+                            <span class="text-success">{{ p.existencia }}</span>
+                        {% endif %}
+                    </td>
+                    <td>${{ p.precio_c }}</td>
+                    <td class="fw-bold">${{ p.precio_v }}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-link text-dark p-0 me-2" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#editModal{{ p.codigo }}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <a href="{{ url_for('delete_producto', codigo=p.codigo) }}" 
+                           class="btn btn-sm btn-link text-danger p-0"
+                           onclick="return confirm('¿Estás seguro de eliminar este producto?')">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+
+                <!-- Edit Modal -->
+                <div class="modal fade" id="editModal{{ p.codigo }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title fw-bold">Editar Producto</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form action="{{ url_for('edit_producto', codigo=p.codigo) }}" method="POST">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted">Descripción</label>
+                                        <input type="text" class="form-control" name="descripcion" value="{{ p.descripcion }}" required>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label small text-muted">Categoría</label>
+                                            <select class="form-select" name="categoria" required>
+                                                <option value="fruta" {% if p.categoria == 'fruta' %}selected{% endif %}>Fruta</option>
+                                                <option value="verdura" {% if p.categoria == 'verdura' %}selected{% endif %}>Verdura</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label small text-muted">Unidad</label>
+                                            <select class="form-select" name="unidad_medida" required>
+                                                <option value="kilogramo" {% if p.unidad_medida == 'kilogramo' %}selected{% endif %}>Kilogramo</option>
+                                                <option value="pieza" {% if p.unidad_medida == 'pieza' %}selected{% endif %}>Pieza</option>
+                                                <option value="ramito" {% if p.unidad_medida == 'ramito' %}selected{% endif %}>Ramito</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label small text-muted">Existencia</label>
+                                            <input type="number" class="form-control" name="existencia" value="{{ p.existencia }}" required>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label small text-muted">Costo</label>
+                                            <input type="number" step="0.01" class="form-control" name="precio_c" value="{{ p.precio_c }}" required>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label small text-muted">Venta</label>
+                                            <input type="number" step="0.01" class="form-control" name="precio_v" value="{{ p.precio_v }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-dark">Guardar Cambios</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if not productos %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-box-seam fs-1 mb-3 d-block"></i>
+                No hay productos registrados.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Nuevo Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('add_producto') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Código</label>
+                        <input type="number" class="form-control" name="codigo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Descripción</label>
+                        <input type="text" class="form-control" name="descripcion" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small text-muted">Categoría</label>
+                            <select class="form-select" name="categoria" required>
+                                <option value="fruta">Fruta</option>
+                                <option value="verdura">Verdura</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small text-muted">Unidad</label>
+                            <select class="form-select" name="unidad_medida" required>
+                                <option value="kilogramo">Kilogramo</option>
+                                <option value="pieza">Pieza</option>
+                                <option value="ramito">Ramito</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label small text-muted">Existencia</label>
+                            <input type="number" class="form-control" name="existencia" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label small text-muted">Costo</label>
+                            <input type="number" step="0.01" class="form-control" name="precio_c" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label small text-muted">Venta</label>
+                            <input type="number" step="0.01" class="form-control" name="precio_v" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-dark">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

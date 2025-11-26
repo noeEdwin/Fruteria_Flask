@@ -88,6 +88,78 @@ def logout():
     return redirect(url_for("login"))
 
 
+# ------------------- PRODUCTOS CRUD -------------------
+@app.route("/productos")
+@login_required
+def productos():
+    with get_cursor() as cur:
+        cur.execute("SELECT * FROM producto ORDER BY codigo")
+        productos = cur.fetchall()
+    return render_template("productos.html", productos=productos)
+
+
+@app.route("/productos/add", methods=["POST"])
+@login_required
+def add_producto():
+    if request.method == "POST":
+        codigo = request.form["codigo"]
+        descripcion = request.form["descripcion"]
+        categoria = request.form["categoria"]
+        unidad = request.form["unidad_medida"]
+        existencia = request.form["existencia"]
+        precio_c = request.form["precio_c"]
+        precio_v = request.form["precio_v"]
+
+        with get_cursor() as cur:
+            try:
+                cur.execute(
+                    """INSERT INTO producto (codigo, descripcion, categoria, unidad_medida, existencia, precio_c, precio_v)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                    (codigo, descripcion, categoria, unidad, existencia, precio_c, precio_v),
+                )
+                flash("Producto agregado correctamente", "success")
+            except Exception as e:
+                flash(f"Error al agregar producto: {e}", "danger")
+    return redirect(url_for("productos"))
+
+
+@app.route("/productos/edit/<int:codigo>", methods=["POST"])
+@login_required
+def edit_producto(codigo):
+    if request.method == "POST":
+        descripcion = request.form["descripcion"]
+        categoria = request.form["categoria"]
+        unidad = request.form["unidad_medida"]
+        existencia = request.form["existencia"]
+        precio_c = request.form["precio_c"]
+        precio_v = request.form["precio_v"]
+
+        with get_cursor() as cur:
+            try:
+                cur.execute(
+                    """UPDATE producto 
+                       SET descripcion=%s, categoria=%s, unidad_medida=%s, existencia=%s, precio_c=%s, precio_v=%s
+                       WHERE codigo=%s""",
+                    (descripcion, categoria, unidad, existencia, precio_c, precio_v, codigo),
+                )
+                flash("Producto actualizado correctamente", "success")
+            except Exception as e:
+                flash(f"Error al actualizar producto: {e}", "danger")
+    return redirect(url_for("productos"))
+
+
+@app.route("/productos/delete/<int:codigo>")
+@login_required
+def delete_producto(codigo):
+    with get_cursor() as cur:
+        try:
+            cur.execute("DELETE FROM producto WHERE codigo = %s", (codigo,))
+            flash("Producto eliminado correctamente", "success")
+        except Exception as e:
+            flash(f"Error al eliminar producto: {e}", "danger")
+    return redirect(url_for("productos"))
+
+
 # ------------------- DASHBOARD PROTEGIDO -------------------
 @app.route("/dashboard")
 @login_required

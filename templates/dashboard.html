@@ -1,9 +1,48 @@
-{% extends "base.html" %} {% block title %}Dashboard{% endblock %} {% block
-content %}
-<h2>Bienvenido, {{ user.nombre_completo or user.username }}</h2>
-<p>Esta es una ruta protegida. Solo puedes verla si has iniciado sesión.</p>
+{% extends "layout_dashboard.html" %}
 
-<a href="{{ url_for('logout') }}" class="btn btn-outline-danger mt-3">
-  Cerrar sesión
-</a>
+{% block title %}Home - Less is More{% endblock %}
+
+{% block content %}
+<div class="hero-section position-relative overflow-hidden">
+    <!-- Geometric Shapes (Background) -->
+    <div class="shape-circle-1"></div>
+    <div class="shape-square-1"></div>
+    <div class="shape-dots-1"></div>
+    <div class="shape-dots-2"></div>
+    <div class="shape-yellow-pill"></div>
+    <div class="shape-yellow-circle"></div>
+
+    <div class="container h-100">
+        <div class="row h-100 align-items-center">
+            <!-- Left Content -->
+            <div class="col-lg-6 ps-lg-5 z-index-1">
+                <div class="hero-content">
+                    <div class="circle-badge mb-4">a.</div>
+                    <h1 class="display-1 fw-bold hero-title mb-0">Frutería</h1>
+                    <h1 class="display-1 fw-bold hero-title mb-0">ITO</h1>
+                    <p class="hero-text text-muted mb-5">
+                      Del instituto tecnológico de Oaxaca para el mundo
+                    </p>
+                
+                    
+                    <a href="#" class="btn btn-dark btn-lg rounded-pill px-5 py-3 text-uppercase fs-6 ls-1">Compra ahora</a>
+                    
+                    <div class="social-icons mt-5 pt-4">
+                        <a href="#" class="text-dark me-3"><i class="bi bi-facebook fs-5"></i></a>
+                        <a href="#" class="text-dark me-3"><i class="bi bi-instagram fs-5"></i></a>
+                        <a href="#" class="text-dark me-3"><i class="bi bi-twitter fs-5"></i></a>
+                        <a href="#" class="text-dark"><i class="bi bi-whatsapp fs-5"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Image (Arch) -->
+            <div class="col-lg-6 h-100 position-relative p-0">
+                <div class="arch-container">
+                    <img src="{{ url_for('static', filename='images/fruits.png') }}" alt="Fruits" class="arch-image">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

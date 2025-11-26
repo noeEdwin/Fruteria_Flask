@@ -7,6 +7,9 @@ from config.config import DB_CONFIG
 def get_db():
     if "db" not in g:
         g.db = psycopg2.connect(**DB_CONFIG)
+        # Set search path to fruteria schema
+        with g.db.cursor() as cur:
+            cur.execute("SET search_path TO fruteria")
     return g.db
 
 def get_cursor(dict_cursor=True):
