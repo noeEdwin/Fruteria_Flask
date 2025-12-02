@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_login import (
     LoginManager, UserMixin, login_user,
     logout_user, login_required, current_user
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from config.db import get_cursor, get_db, close_db
+import psycopg2
 
 app = Flask(__name__)
 app.secret_key = 'fruteria_super_secreta'  
@@ -14,42 +15,38 @@ login_manager = LoginManager(app)
 login_manager.login_view = "login"  
 
 
-# --------- Clase User para Flask-Login (sin ORM) ----------
+# --------- Clase User para Flask-Login (RBAC) ----------
 class User(UserMixin):
-    def __init__(self, id, username, nombre_completo=None):
-        self.id = str(id)  # Flask-Login espera string
+    def __init__(self, username, nombre_completo=None):
+        self.id = username  # Use username as ID for RBAC
         self.username = username
-        self.nombre_completo = nombre_completo
+        self.nombre_completo = nombre_completo or username
 
     @staticmethod
-    def get_by_id(user_id):
-        # user_id comes as string from Flask-Login; DB primary key is id_e
-        with get_cursor() as cur:
-            cur.execute(
-                "SELECT id_e AS id, username, nombre AS nombre_completo FROM empleado WHERE id_e = %s",
-                (int(user_id),)
-            )
-            row = cur.fetchone()
-        if row:
-            return User(row["id"], row["username"], row.get("nombre_completo"))
-        return None
-
-    @staticmethod
-    def get_by_username(username):
-        # Match the DDL: empleado table has id_e, username, password (we store the hash in `password`)
-        with get_cursor() as cur:
-            cur.execute(
-                "SELECT id_e AS id, username, password AS password_hash, nombre AS nombre_completo "
-                "FROM empleado WHERE username = %s",
-                (username,)
-            )
-            row = cur.fetchone()
-        return row
+    def get(username):
+        # We can try to fetch extra info from 'empleado' table if it exists
+        # but the primary source of truth is the DB role itself.
+        # For now, let's just return a User object.
+        # Ideally, we could query: SELECT * FROM empleado WHERE username = %s
+        # to get the 'nombre_completo'.
+        
+        # Try to get full name from empleado table, but don't fail if not found
+        nombre = None
+        try:
+            with get_cursor() as cur:
+                cur.execute("SELECT nombre FROM empleado WHERE username = %s", (username,))
+                row = cur.fetchone()
+                if row:
+                    nombre = row['nombre']
+        except Exception:
+            pass # Table might not exist or user might not have permission to read it yet
+            
+        return User(username, nombre)
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get_by_id(user_id)
+    return User.get(user_id)
 
 
 # ---------- Cerrar DB al final de cada request ----------
@@ -66,15 +63,27 @@ def login():
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
 
-        user_row = User.get_by_username(username)
-
-        if user_row and check_password_hash(user_row["password_hash"], password):
-            user = User(user_row["id"], user_row["username"], user_row.get("nombre_completo"))
+        try:
+            # Attempt to connect to the database with provided credentials
+            # We use a temporary connection just to verify
+            conn = get_db(user=username, password=password)
+            conn.close() # Close immediate check connection
+            
+            # If successful, store credentials in session
+            session["db_user"] = username
+            # session["db_password"] = password  <-- REMOVED FOR SECURITY
+            
+            # Create user object and login
+            user = User.get(username)
             login_user(user)
+            
             flash(f"Bienvenido, {user.username}", "success")
             return redirect(url_for("dashboard"))
-        else:
-            flash("Usuario o contraseña incorrectos", "danger")
+            
+        except psycopg2.OperationalError:
+            flash("Usuario o contraseña incorrectos (DB Auth Failed)", "danger")
+        except Exception as e:
+             flash(f"Error de conexión: {e}", "danger")
 
     return render_template("login.html")
 
@@ -84,6 +93,8 @@ def login():
 @login_required
 def logout():
     logout_user()
+    session.pop("db_user", None)
+    # session.pop("db_password", None) <-- REMOVED
     flash("Sesión cerrada", "info")
     return redirect(url_for("login"))
 
