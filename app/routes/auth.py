@@ -13,15 +13,11 @@ def login():
         password = request.form.get("password", "")
 
         try:
-            # Attempt to connect to the database with provided credentials
-            # We use a temporary connection just to verify
             conn = get_db(user=username, password=password)
-            conn.close() # Close immediate check connection
+            conn.close()
             
-            # If successful, store credentials in session
             session["db_user"] = username
             
-            # Create user object and login
             user = User.get(username)
             login_user(user)
             
