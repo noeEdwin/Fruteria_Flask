@@ -4,6 +4,12 @@ from app.models.product import get_all_products, add_product, update_product, de
 
 products_bp = Blueprint('products', __name__)
 
+@products_bp.route("/")
+@products_bp.route("/home")
+@login_required
+def home():
+    return render_template("dashboard.html")
+
 @products_bp.route("/productos")
 @login_required
 def productos():
