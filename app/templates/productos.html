@@ -48,14 +48,39 @@
                                 data-bs-target="#editModal{{ p.codigo }}">
                             <i class="bi bi-pencil"></i>
                         </button>
-                        <a href="{{ url_for('products.delete_producto_route', codigo=p.codigo) }}" 
-                           class="btn btn-sm btn-link text-danger p-0"
-                           onclick="return confirm('¿Estás seguro de eliminar este producto?')">
+                        <button class="btn btn-sm btn-link text-danger p-0" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#deleteModal{{ p.codigo }}">
                             <i class="bi bi-trash"></i>
-                        </a>
+                        </button>
                     </td>
                 </tr>
-
+                <!-- DELETE MODAL -->
+                <div class="modal fade" id="deleteModal{{ p.codigo }}" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header border-0 bg-danger text-white">
+                                <h5 class="modal-title">⚠️ Confirmar Eliminación</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="mb-2">¿Estás seguro de eliminar este producto?</p>
+                                <div class="bg-light p-3 rounded">
+                                    <strong>{{ p.descripcion }}</strong><br>
+                                    <small class="text-muted">Código: #{{ p.codigo }}</small>
+                                </div>
+                                <p class="mt-3 mb-0 small text-muted">
+                                    ⓘ Si el producto tiene ventas, compras o proveedores asociados, no podrá eliminarse.
+                                </p>
+                            </div>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                                <a href="{{ url_for('products.delete_producto_route', codigo=p.codigo) }}" 
+                                class="btn btn-danger">Eliminar Producto</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- Edit Modal -->
                 <div class="modal fade" id="editModal{{ p.codigo }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">

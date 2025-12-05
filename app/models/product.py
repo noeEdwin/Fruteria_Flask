@@ -34,6 +34,24 @@ def update_product(codigo, data):
         )
 
 def delete_product(codigo):
+    """
+    Elimina un producto solo si no está en uso.
+    Lanza una excepción personalizada si está en uso.
+    """
+    usage = check_product_in_use(codigo)
+    if usage['in_use']:
+        reasons = []
+        if usage['ventas'] > 0:
+            reasons.append(f"{usage['ventas']} venta(s)")
+        if usage['compras'] > 0:
+            reasons.append(f"{usage['compras']} compra(s)")
+        if usage['proveedores'] > 0:
+            reasons.append(f"{usage['proveedores']} proveedor(es)")
+        
+        message = f"No se puede eliminar el producto porque está asociado a: {', '.join(reasons)}"
+        raise ValueError(message)
+    
+    # Si no está en uso, proceder con la eliminación
     with get_cursor() as cur:
         cur.execute("DELETE FROM producto WHERE codigo = %s", (codigo,))
 
@@ -46,3 +64,31 @@ def get_next_product_code():
             return 1000
         else:
             return result['max_codigo'] + 1
+    
+def check_product_in_use(codigo):
+    """
+    Verifica si un producto está siendo usado en ventas, compras o relaciones con proveedores.
+    """
+    with get_cursor() as cur:
+        # Verificar en detalle_venta
+        cur.execute("SELECT COUNT(*) as count FROM detalle_venta WHERE codigo = %s", (codigo,))
+        ventas_count = cur.fetchone()['count']
+        
+        # Verificar en detalle_compra
+        cur.execute("SELECT COUNT(*) as count FROM detalle_compra WHERE codigo = %s", (codigo,))
+        compras_count = cur.fetchone()['count']
+        
+        # Verificar en producto_proveedor
+        cur.execute("SELECT COUNT(*) as count FROM producto_proveedor WHERE codigo = %s", (codigo,))
+        proveedores_count = cur.fetchone()['count']
+        
+        is_in_use = (ventas_count > 0) or (compras_count > 0) or (proveedores_count > 0)
+        
+        details = {
+            'in_use': is_in_use,
+            'ventas': ventas_count,
+            'compras': compras_count,
+            'proveedores': proveedores_count
+        }
+        
+        return details

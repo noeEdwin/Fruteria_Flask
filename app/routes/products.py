@@ -54,8 +54,11 @@ def delete_producto_route(codigo):
     try:
         delete_product(codigo)
         flash("Producto eliminado correctamente", "success")
+    except ValueError as e:
+        # Error de negocio (producto en uso)
+        flash(str(e), "warning")
     except Exception as e:
-        flash(f"Error al eliminar producto: {e}", "danger")
+        # Otros errores inesperados
+        flash(f"Error inesperado al eliminar producto: {e}", "danger")
     return redirect(url_for("products.productos"))
-
         
