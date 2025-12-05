@@ -1,45 +1,166 @@
 {% extends "layout_dashboard.html" %}
 
-{% block title %}Home - Less is More{% endblock %}
+{% block title %}Dashboard - Frutería{% endblock %}
 
 {% block content %}
-<div class="hero-section position-relative overflow-hidden">
-    <!-- Geometric Shapes (Background) -->
-    <div class="shape-circle-1"></div>
-    <div class="shape-square-1"></div>
-    <div class="shape-dots-1"></div>
-    <div class="shape-dots-2"></div>
-    <div class="shape-yellow-pill"></div>
-    <div class="shape-yellow-circle"></div>
+<div class="container-fluid py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h6 class="text-uppercase text-muted ls-1 mb-1">Resumen General</h6>
+            <h1 class="h2 fw-bold">Hola, {{ current_user.username }}</h1>
+            <p class="text-muted">Aquí está lo que está pasando en tu tienda hoy.</p>
+        </div>
+    </div>
 
-    <div class="container h-100">
-        <div class="row h-100 align-items-center">
-            <!-- Left Content -->
-            <div class="col-lg-6 ps-lg-5 z-index-1">
-                <div class="hero-content">
-                    <div class="circle-badge mb-4">a.</div>
-                    <h1 class="display-1 fw-bold hero-title mb-0">Frutería</h1>
-                    <h1 class="display-1 fw-bold hero-title mb-0">ITO</h1>
-                    <p class="hero-text text-muted mb-5">
-                      Del instituto tecnológico de Oaxaca para el mundo
-                    </p>
-                
-                    
-                    <a href="#" class="btn btn-dark btn-lg rounded-pill px-5 py-3 text-uppercase fs-6 ls-1">Compra ahora</a>
-                    
-                    <div class="social-icons mt-5 pt-4">
-                        <a href="#" class="text-dark me-3"><i class="bi bi-facebook fs-5"></i></a>
-                        <a href="#" class="text-dark me-3"><i class="bi bi-instagram fs-5"></i></a>
-                        <a href="#" class="text-dark me-3"><i class="bi bi-twitter fs-5"></i></a>
-                        <a href="#" class="text-dark"><i class="bi bi-whatsapp fs-5"></i></a>
+    <!-- KPI Cards -->
+    <div class="row g-4 mb-5">
+        <!-- Total Products -->
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h6 class="text-uppercase text-muted small mb-1">Total Productos</h6>
+                            <h2 class="display-4 fw-bold mb-0">{{ stats.total_products }}</h2>
+                        </div>
+                        <div class="bg-light rounded-circle p-3 text-dark">
+                            <i class="bi bi-box-seam fs-4"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('products.productos') }}" class="text-decoration-none small fw-bold text-dark">
+                        Ver Inventario <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Stock Alert -->
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100 {% if stats.low_stock_count > 0 %}bg-danger text-white{% endif %}">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h6 class="text-uppercase small mb-1 {% if stats.low_stock_count > 0 %}text-white-50{% else %}text-muted{% endif %}">Stock Bajo</h6>
+                            <h2 class="display-4 fw-bold mb-0">{{ stats.low_stock_count }}</h2>
+                        </div>
+                        <div class="rounded-circle p-3 {% if stats.low_stock_count > 0 %}bg-white text-danger{% else %}bg-light text-dark{% endif %}">
+                            <i class="bi bi-exclamation-triangle fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="small {% if stats.low_stock_count > 0 %}text-white-50{% else %}text-muted{% endif %}">
+                        Productos requieren atención
                     </div>
                 </div>
             </div>
-            
-            <!-- Right Image (Arch) -->
-            <div class="col-lg-6 h-100 position-relative p-0">
-                <div class="arch-container">
-                    <img src="{{ url_for('static', filename='images/fruits.png') }}" alt="Fruits" class="arch-image">
+        </div>
+
+        <!-- Inventory Value -->
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h6 class="text-uppercase text-muted small mb-1">Valor Inventario</h6>
+                            <h2 class="display-5 fw-bold mb-0">${{ "%.2f"|format(stats.total_value) }}</h2>
+                        </div>
+                        <div class="bg-light rounded-circle p-3 text-success">
+                            <i class="bi bi-currency-dollar fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="small text-muted">
+                        Costo total de mercancía
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Area -->
+    <div class="row g-4">
+        <!-- Critical Items List -->
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">Atención Requerida</h5>
+                    {% if stats.low_stock_count > 0 %}
+                    <span class="badge bg-danger rounded-pill px-3">Crítico</span>
+                    {% else %}
+                    <span class="badge bg-success rounded-pill px-3">Todo en orden</span>
+                    {% endif %}
+                </div>
+                <div class="card-body p-0">
+                    {% if low_stock_products %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4 text-uppercase small text-muted border-0">Producto</th>
+                                    <th class="text-uppercase small text-muted border-0">Existencia</th>
+                                    <th class="text-end pe-4 text-uppercase small text-muted border-0">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in low_stock_products %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-light rounded p-2 me-3 text-muted">
+                                                <i class="bi bi-basket"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">{{ p.descripcion }}</h6>
+                                                <small class="text-muted">#{{ p.codigo }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-danger fw-bold">{{ p.existencia }} {{ p.unidad_medida }}</span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <a href="{{ url_for('products.product_dashboard', codigo=p.codigo) }}" class="btn btn-sm btn-outline-dark">
+                                            Gestionar
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-check-circle fs-1 text-success mb-3"></i>
+                        <p class="text-muted mb-0">No hay productos con stock bajo.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 bg-dark text-white">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">Acciones Rápidas</h5>
+                    <div class="d-grid gap-3">
+                        <a href="{{ url_for('products.productos') }}" class="btn btn-light py-3 text-start">
+                            <i class="bi bi-plus-circle me-2"></i> Gestionar Productos
+                        </a>
+                        <button class="btn btn-outline-light py-3 text-start" disabled>
+                            <i class="bi bi-file-earmark-text me-2"></i> Generar Reporte (Pronto)
+                        </button>
+                        <button class="btn btn-outline-light py-3 text-start" disabled>
+                            <i class="bi bi-people me-2"></i> Gestionar Usuarios (Pronto)
+                        </button>
+                    </div>
+                    
+                    <div class="mt-5 pt-4 border-top border-secondary">
+                        <small class="text-white-50 text-uppercase ls-1">Sistema</small>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span>Estado del Servidor</span>
+                            <span class="badge bg-success">En Línea</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

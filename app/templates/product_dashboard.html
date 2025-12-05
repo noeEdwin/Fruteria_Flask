@@ -1,0 +1,201 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Dashboard de Producto - {{ product.descripcion }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h6 class="text-uppercase text-muted ls-1 mb-1">Detalle de Producto</h6>
+            <h1 class="h2 mb-0 fw-bold">{{ product.descripcion }}</h1>
+            <div class="d-flex align-items-center mt-2">
+                <span class="badge bg-dark me-2">#{{ product.codigo }}</span>
+                <span class="text-muted">{{ product.categoria }}</span>
+            </div>
+        </div>
+        <div class="col-auto">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#editProductModal{{ product.codigo }}">
+                    <i class="bi bi-pencil me-2"></i>Editar
+                </button>
+                <a href="{{ url_for('products.delete_producto_route', codigo=product.codigo) }}" 
+                   class="btn btn-outline-danger"
+                   onclick="return confirm('¿Estás seguro de eliminar este producto?')">
+                    <i class="bi bi-trash me-2"></i>Eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Grid -->
+    <div class="row g-4 mb-5">
+        <!-- Stock Card -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-2">Existencia Actual</h6>
+                    <div class="d-flex align-items-baseline">
+                        <h2 class="display-4 fw-bold mb-0 {% if product.existencia < 10 %}text-danger{% else %}text-success{% endif %}">
+                            {{ product.existencia }}
+                        </h2>
+                        <span class="ms-2 text-muted">{{ product.unidad_medida }}</span>
+                    </div>
+                    {% if product.existencia < 10 %}
+                    <div class="mt-3 text-danger small">
+                        <i class="bi bi-exclamation-triangle me-1"></i> Stock Crítico
+                    </div>
+                    {% else %}
+                    <div class="mt-3 text-success small">
+                        <i class="bi bi-check-circle me-1"></i> Stock Saludable
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Card -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-2">Precio de Venta</h6>
+                    <h2 class="display-4 fw-bold mb-0">${{ "%.2f"|format(product.precio_v) }}</h2>
+                    <div class="mt-3 text-muted small">
+                        Precio al público
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost Card -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-2">Costo Unitario</h6>
+                    <h2 class="display-4 fw-bold mb-0 text-muted">${{ "%.2f"|format(product.precio_c) }}</h2>
+                    <div class="mt-3 text-muted small">
+                        Costo de adquisición
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Margin Card -->
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100 bg-light">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-2">Margen de Ganancia</h6>
+                    {% set margen = product.precio_v - product.precio_c %}
+                    {% set margen_percent = (margen / product.precio_v * 100) if product.precio_v > 0 else 0 %}
+                    <h2 class="display-4 fw-bold mb-0 text-primary">${{ "%.2f"|format(margen) }}</h2>
+                    <div class="mt-3 text-primary small fw-bold">
+                        <i class="bi bi-graph-up me-1"></i> {{ "%.1f"|format(margen_percent) }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Usage Stats & Details -->
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="mb-0 fw-bold">Estadísticas de Uso</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4 border-end">
+                            <h3 class="fw-bold mb-1">{{ usage.ventas }}</h3>
+                            <span class="text-muted small text-uppercase">Ventas</span>
+                        </div>
+                        <div class="col-4 border-end">
+                            <h3 class="fw-bold mb-1">{{ usage.compras }}</h3>
+                            <span class="text-muted small text-uppercase">Compras</span>
+                        </div>
+                        <div class="col-4">
+                            <h3 class="fw-bold mb-1">{{ usage.proveedores }}</h3>
+                            <span class="text-muted small text-uppercase">Proveedores</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm bg-dark text-white h-100">
+                <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-qr-code-scan display-1"></i>
+                    </div>
+                    <h5 class="mb-1">Código de Producto</h5>
+                    <p class="text-white-50 font-monospace fs-4">{{ product.codigo }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal (Reused logic from productos.html but specific for this view) -->
+<div class="modal fade" id="editProductModal{{ product.codigo }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Editar Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('products.edit_producto_route', codigo=product.codigo) }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted text-uppercase">Descripción</label>
+                        <input type="text" class="form-control" name="descripcion" value="{{ product.descripcion }}" required>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small text-muted text-uppercase">Categoría</label>
+                            <select class="form-select" name="categoria" required>
+                                <option value="Frutas" {% if product.categoria == 'Frutas' %}selected{% endif %}>Frutas</option>
+                                <option value="Verduras" {% if product.categoria == 'Verduras' %}selected{% endif %}>Verduras</option>
+                                <option value="Lácteos" {% if product.categoria == 'Lácteos' %}selected{% endif %}>Lácteos</option>
+                                <option value="Granos" {% if product.categoria == 'Granos' %}selected{% endif %}>Granos</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted text-uppercase">Unidad</label>
+                            <select class="form-select" name="unidad_medida" required>
+                                <option value="kg" {% if product.unidad_medida == 'kg' %}selected{% endif %}>Kilogramo (kg)</option>
+                                <option value="lb" {% if product.unidad_medida == 'lb' %}selected{% endif %}>Libra (lb)</option>
+                                <option value="un" {% if product.unidad_medida == 'un' %}selected{% endif %}>Unidad (un)</option>
+                                <option value="lt" {% if product.unidad_medida == 'lt' %}selected{% endif %}>Litro (lt)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted text-uppercase">Existencia</label>
+                        <input type="number" step="0.01" class="form-control" name="existencia" value="{{ product.existencia }}" required>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label small text-muted text-uppercase">Precio Costo</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" class="form-control" name="precio_c" value="{{ product.precio_c }}" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted text-uppercase">Precio Venta</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" class="form-control" name="precio_v" value="{{ product.precio_v }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-dark py-2">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

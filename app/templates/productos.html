@@ -48,6 +48,11 @@
                                 data-bs-target="#editModal{{ p.codigo }}">
                             <i class="bi bi-pencil"></i>
                         </button>
+                        <a href="{{ url_for('products.product_dashboard', codigo=p.codigo) }}" 
+                           class="btn btn-sm btn-link text-primary p-0 me-2" 
+                           title="Ver Dashboard">
+                            <i class="bi bi-speedometer2"></i>
+                        </a>
                         <button class="btn btn-sm btn-link text-danger p-0" 
                                 data-bs-toggle="modal" 
                                 data-bs-target="#deleteModal{{ p.codigo }}">

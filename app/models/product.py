@@ -1,5 +1,11 @@
 from config.db import get_cursor
 
+
+def get_product_by_code(codigo):
+    with get_cursor() as cur:
+        cur.execute("SELECT * FROM producto WHERE codigo = %s", (codigo,))
+        return cur.fetchone()
+
 def get_all_products():
     with get_cursor() as cur:
         cur.execute("SELECT * FROM producto ORDER BY codigo")
@@ -92,3 +98,26 @@ def check_product_in_use(codigo):
         }
         
         return details
+
+def get_dashboard_stats():
+    with get_cursor() as cur:
+        cur.execute("SELECT COUNT(*) as total FROM producto")
+        total_products = cur.fetchone()['total']
+        
+        cur.execute("SELECT COUNT(*) as count FROM producto WHERE existencia < 10")
+        low_stock_count = cur.fetchone()['count']
+        
+        cur.execute("SELECT SUM(existencia * precio_c) as total_value FROM producto")
+        result = cur.fetchone()
+        total_value = result['total_value'] if result['total_value'] else 0
+        
+        return {
+            'total_products': total_products,
+            'low_stock_count': low_stock_count,
+            'total_value': total_value
+        }
+
+def get_low_stock_products(limit=5):
+    with get_cursor() as cur:
+        cur.execute("SELECT * FROM producto WHERE existencia < 10 ORDER BY existencia ASC LIMIT %s", (limit,))
+        return cur.fetchall()
