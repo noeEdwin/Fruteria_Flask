@@ -15,7 +15,6 @@ def productos():
 def add_producto_route():
     if request.method == "POST":
         data = {
-            'codigo': request.form["codigo"],
             'descripcion': request.form["descripcion"],
             'categoria': request.form["categoria"],
             'unidad_medida': request.form["unidad_medida"],
@@ -24,8 +23,8 @@ def add_producto_route():
             'precio_v': request.form["precio_v"]
         }
         try:
-            add_product(data)
-            flash("Producto agregado correctamente", "success")
+            new_code = add_product(data)
+            flash(f"Producto con código # {new_code} agregado correctamente", "success")
         except Exception as e:
             flash(f"Error al agregar producto: {e}", "danger")
     return redirect(url_for("products.productos"))
@@ -58,3 +57,5 @@ def delete_producto_route(codigo):
     except Exception as e:
         flash(f"Error al eliminar producto: {e}", "danger")
     return redirect(url_for("products.productos"))
+
+        

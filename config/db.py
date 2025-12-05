@@ -46,6 +46,8 @@ def close_db(e=None):
     if db is not None:
         db.close()
 
+# Función que maneja la conexión a la base de datos
+# Si todo salio bien, hace un commit, si no, hace un rollback 
 @contextmanager
 def get_cursor(dict_cursor=True):
     conn = get_db()
