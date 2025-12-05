@@ -6,6 +6,7 @@ import psycopg2.extras
 from flask import g, session
 from config.config import DB_CONFIG
 import re
+from contextlib import contextmanager
 
 def get_db(user=None, password=None):
     # Basicamente busca si no hay una conexión abierta, si no la hay, la abre.
@@ -39,15 +40,21 @@ def get_db(user=None, password=None):
             cur.execute("SET search_path TO fruteria_db")
     return g.db
 
-# Basicamente da a los datos que regresa 
-def get_cursor(dict_cursor=True):
-    conn = get_db()
-    if dict_cursor:
-        return conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    return conn.cursor()
-
 # Cierra la conexión a la base de datos
 def close_db(e=None):
     db = g.pop("db", None)
     if db is not None:
         db.close()
+
+@contextmanager
+def get_cursor(dict_cursor=True):
+    conn = get_db()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) if dict_cursor else conn.cursor()
+    try:
+        yield cursor
+        conn.commit()  
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cursor.close()
