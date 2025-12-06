@@ -53,7 +53,6 @@ CREATE TABLE empleado(
     turno VARCHAR(20),
     salario NUMERIC(14,2),
     username VARCHAR(150) UNIQUE,
-    password VARCHAR(128),
     last_login TIMESTAMP WITH TIME ZONE,
     is_active BOOLEAN DEFAULT true,
     is_staff BOOLEAN DEFAULT false,
