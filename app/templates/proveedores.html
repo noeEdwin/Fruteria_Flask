@@ -1,0 +1,131 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Proveedores - Frutería{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h6 class="text-uppercase text-muted ls-1 mb-1">Gestión</h6>
+            <h1 class="h2 fw-bold">Proveedores</h1>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalProveedor" onclick="resetForm()">
+            <i class="bi bi-plus-lg me-2"></i> Nuevo Proveedor
+        </button>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Nombre</th>
+                            <th>Ciudad</th>
+                            <th>Contacto</th>
+                            <th>Teléfono</th>
+                            <th class="text-end pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in proveedores %}
+                        <tr>
+                            <td class="ps-4 text-muted">#{{ p.id_p }}</td>
+                            <td class="fw-bold">{{ p.nombre }}</td>
+                            <td>{{ p.ciudad }}</td>
+                            <td>{{ p.contacto }}</td>
+                            <td>{{ p.tel_contacto }}</td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-outline-dark me-1" onclick="editProvider({{ p.id_p }})">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <a href="{{ url_for('proveedores.delete', id_p=p.id_p) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar proveedor?');">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                No hay proveedores registrados
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Proveedor -->
+<div class="modal fade" id="modalProveedor" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="modalTitle">Nuevo Proveedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('proveedores.add') }}" method="POST" id="formProveedor">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de la Empresa</label>
+                        <input type="text" class="form-control" name="nombre" id="inputNombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ciudad</label>
+                        <input type="text" class="form-control" name="ciudad" id="inputCiudad" required>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Persona de Contacto</label>
+                            <input type="text" class="form-control" name="contacto" id="inputContacto" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" name="tel_contacto" id="inputTelefono" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function resetForm() {
+    document.getElementById('formProveedor').reset();
+    document.getElementById('formProveedor').action = "{{ url_for('proveedores.add') }}";
+    document.getElementById('modalTitle').textContent = "Nuevo Proveedor";
+}
+
+async function editProvider(id) {
+    try {
+        const response = await fetch(`/proveedores/get/${id}`);
+        const data = await response.json();
+        
+        if (data.error) return;
+
+        document.getElementById('formProveedor').action = `/proveedores/edit/${id}`;
+        document.getElementById('modalTitle').textContent = "Editar Proveedor";
+        
+        document.getElementById('inputNombre').value = data.nombre;
+        document.getElementById('inputCiudad').value = data.ciudad;
+        document.getElementById('inputContacto').value = data.contacto;
+        document.getElementById('inputTelefono').value = data.tel_contacto;
+        
+        new bootstrap.Modal(document.getElementById('modalProveedor')).show();
+    } catch (e) {
+        console.error(e);
+        alert('Error al cargar datos del proveedor');
+    }
+}
+</script>
+{% endblock %}

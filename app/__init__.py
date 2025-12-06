@@ -32,4 +32,7 @@ def create_app():
     from app.routes.clientes import clientes_bp
     app.register_blueprint(clientes_bp)
 
+    from app.routes.proveedores import proveedores_bp
+    app.register_blueprint(proveedores_bp)
+
     return app
