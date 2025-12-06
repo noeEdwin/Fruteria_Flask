@@ -18,30 +18,30 @@ document.addEventListener('DOMContentLoaded', function() {
         const option = selectProducto.options[selectProducto.selectedIndex];
         
         if (!option || option.disabled) {
-            alert('Por favor seleccione un producto');
+            showAlert('Por favor seleccione un producto');
             return;
         }
 
         const codigo = parseInt(option.value);
         const nombre = option.dataset.nombre;
         const precio = parseFloat(option.dataset.precio);
-        const stock = parseInt(option.dataset.stock);
-        const cantidad = parseInt(inputCantidad.value);
+        const stock = parseFloat(option.dataset.stock);
+        const cantidad = parseFloat(inputCantidad.value);
 
         if (cantidad <= 0) {
-            alert('La cantidad debe ser mayor a 0');
+            showAlert('La cantidad debe ser mayor a 0');
             return;
         }
 
         if (cantidad > stock) {
-            alert(`Stock insuficiente. Solo hay ${stock} disponibles.`);
+            showAlert(`Stock insuficiente. Solo hay ${stock} disponibles.`);
             return;
         }
 
         const existingItem = carrito.find(item => item.codigo === codigo);
         if (existingItem) {
             if (existingItem.cantidad + cantidad > stock) {
-                alert(`No puedes agregar más. Ya tienes ${existingItem.cantidad} en el carrito y el stock es ${stock}.`);
+                showAlert(`No puedes agregar más. Ya tienes ${existingItem.cantidad} en el carrito y el stock es ${stock}.`);
                 return;
             }
             existingItem.cantidad += cantidad;
@@ -109,43 +109,46 @@ document.addEventListener('DOMContentLoaded', function() {
         itemsCount.textContent = `${carrito.length} items`;
     }
 
-    btnFinalizar.addEventListener('click', async function() {
+    btnFinalizar.addEventListener('click', function() {
         if (carrito.length === 0) {
-            alert('El carrito está vacío');
+            showAlert('El carrito está vacío');
             return;
         }
 
         const id_cliente = selectCliente.value;
         if (!id_cliente) {
-            alert('Por favor seleccione un cliente');
+            showAlert('Por favor seleccione un cliente');
             return;
         }
 
-        if (!confirm('¿Confirmar venta?')) return;
-
-        try {
-            const response = await fetch('/ventas/crear', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    id_cliente: id_cliente,
-                    items: carrito.map(item => ({ codigo: item.codigo, cantidad: item.cantidad }))
-                })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                alert(result.message);
-                window.location.reload();
-            } else {
-                alert('Error: ' + result.message);
+        showConfirmationModal('¿Confirmar venta?', async function() {
+            try {
+                const response = await fetch('/ventas/crear', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id_cliente: id_cliente,
+                        items: carrito.map(item => ({ codigo: item.codigo, cantidad: item.cantidad }))
+                    })
+                });
+    
+                const result = await response.json();
+    
+                if (result.success) {
+                    showAlert(result.message, "Éxito");
+                    // Esperar a que el usuario lea el mensaje o recargar después de un momento
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showAlert('Error: ' + result.message, "Error");
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error de conexión', "Error");
             }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error de conexión');
-        }
+        });
     });
 });

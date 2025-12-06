@@ -40,7 +40,7 @@
                                 <button class="btn btn-sm btn-outline-dark me-1" onclick="editProvider({{ p.id_p }})">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <a href="{{ url_for('proveedores.delete', id_p=p.id_p) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar proveedor?');">
+                                <a href="#" class="btn btn-sm btn-outline-danger" onclick="return confirmAction('{{ url_for('proveedores.delete', id_p=p.id_p) }}', '¿Eliminar al proveedor {{ p.nombre }}?');">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </td>

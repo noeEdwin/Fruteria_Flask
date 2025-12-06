@@ -46,7 +46,7 @@
                                 <button class="btn btn-sm btn-outline-dark me-1" onclick="editClient({{ c.id_c }})">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <a href="{{ url_for('clientes.delete', id_c=c.id_c) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar cliente?');">
+                                <a href="#" class="btn btn-sm btn-outline-danger" onclick="return confirmAction('{{ url_for('clientes.delete', id_c=c.id_c) }}', '¿Eliminar al cliente {{ c.nombre_cliente }}?');">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </td>
