@@ -1,0 +1,168 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Clientes - Frutería{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h6 class="text-uppercase text-muted ls-1 mb-1">Gestión</h6>
+            <h1 class="h2 fw-bold">Clientes</h1>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCliente" onclick="resetForm()">
+            <i class="bi bi-plus-lg me-2"></i> Nuevo Cliente
+        </button>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Nombre / Razón Social</th>
+                            <th>RFC</th>
+                            <th>Teléfono</th>
+                            <th>Tipo</th>
+                            <th class="text-end pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in clientes %}
+                        <tr>
+                            <td class="ps-4 text-muted">#{{ c.id_c }}</td>
+                            <td class="fw-bold">{{ c.nombre_cliente }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ c.rfc }}</span></td>
+                            <td>{{ c.telefono }}</td>
+                            <td>
+                                {% if c.tipo == 'Moral' %}
+                                <span class="badge bg-info text-dark">Moral</span>
+                                {% else %}
+                                <span class="badge bg-success">Física</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-outline-dark me-1" onclick="editClient({{ c.id_c }})">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <a href="{{ url_for('clientes.delete', id_c=c.id_c) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar cliente?');">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                No hay clientes registrados
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cliente -->
+<div class="modal fade" id="modalCliente" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="modalTitle">Nuevo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('clientes.add') }}" method="POST" id="formCliente">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Persona</label>
+                        <select class="form-select" name="tipo" id="selectTipo" onchange="toggleNameLabel()">
+                            <option value="Fisica">Persona Física</option>
+                            <option value="Moral">Persona Moral</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" id="labelNombre">Nombre Completo</label>
+                        <input type="text" class="form-control" name="nombre" id="inputNombre" required>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">RFC</label>
+                            <input type="text" class="form-control" name="rfc" id="inputRFC" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" name="telefono" id="inputTelefono" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Domicilio</label>
+                        <input type="text" class="form-control" name="domicilio" id="inputDomicilio" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleNameLabel() {
+    const tipo = document.getElementById('selectTipo').value;
+    const label = document.getElementById('labelNombre');
+    label.textContent = tipo === 'Moral' ? 'Razón Social' : 'Nombre Completo';
+}
+
+function resetForm() {
+    document.getElementById('formCliente').reset();
+    document.getElementById('formCliente').action = "{{ url_for('clientes.add') }}";
+    document.getElementById('modalTitle').textContent = "Nuevo Cliente";
+    document.getElementById('selectTipo').disabled = false; // Permitir cambiar tipo al crear
+    toggleNameLabel();
+}
+
+async function editClient(id) {
+    try {
+        const response = await fetch(`/clientes/get/${id}`);
+        const data = await response.json();
+        
+        if (data.error) return;
+
+        document.getElementById('formCliente').action = `/clientes/edit/${id}`;
+        document.getElementById('modalTitle').textContent = "Editar Cliente";
+        
+        document.getElementById('selectTipo').value = data.tipo;
+        document.getElementById('selectTipo').disabled = true; // No permitir cambiar tipo al editar (complicaría lógica BD)
+        
+        // Agregar input hidden para enviar el tipo ya que el select disabled no se envía
+        let hiddenTipo = document.getElementById('hiddenTipo');
+        if (!hiddenTipo) {
+            hiddenTipo = document.createElement('input');
+            hiddenTipo.type = 'hidden';
+            hiddenTipo.name = 'tipo';
+            hiddenTipo.id = 'hiddenTipo';
+            document.getElementById('formCliente').appendChild(hiddenTipo);
+        }
+        hiddenTipo.value = data.tipo;
+
+        document.getElementById('inputNombre').value = data.nombre_cliente;
+        document.getElementById('inputRFC').value = data.rfc;
+        document.getElementById('inputTelefono').value = data.telefono;
+        document.getElementById('inputDomicilio').value = data.domicilio;
+        
+        toggleNameLabel();
+        
+        new bootstrap.Modal(document.getElementById('modalCliente')).show();
+    } catch (e) {
+        console.error(e);
+        alert('Error al cargar datos del cliente');
+    }
+}
+</script>
+{% endblock %}

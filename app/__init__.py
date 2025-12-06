@@ -29,4 +29,7 @@ def create_app():
     from app.routes.ventas import ventas_bp
     app.register_blueprint(ventas_bp)
 
+    from app.routes.clientes import clientes_bp
+    app.register_blueprint(clientes_bp)
+
     return app

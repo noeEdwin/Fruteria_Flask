@@ -43,7 +43,7 @@
               <a class="nav-link" href="#">Proveedores</a>
             </li>
             <li class="nav-item mx-3">
-              <a class="nav-link" href="#">Clientes</a>
+              <a class="nav-link {% if 'clientes' in request.endpoint %}active{% endif %}" href="{{ url_for('clientes.index') }}">Clientes</a>
             </li>
             <li class="nav-item mx-3">
               <a class="nav-link {% if 'ventas.nueva_venta' in request.endpoint %}active{% endif %}" href="{{ url_for('ventas.nueva_venta') }}">Ventas</a>
