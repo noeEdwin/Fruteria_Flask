@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // State
     let carrito = [];
     
-    // Elements
     const selectProducto = document.getElementById('selectProducto');
     const inputCantidad = document.getElementById('inputCantidad');
     const btnAgregar = document.getElementById('btnAgregar');
@@ -14,10 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnFinalizar = document.getElementById('btnFinalizar');
     const selectCliente = document.getElementById('selectCliente');
     
-    // Set Date
     document.getElementById('fechaActual').value = new Date().toLocaleDateString();
 
-    // Add Item
     btnAgregar.addEventListener('click', function() {
         const option = selectProducto.options[selectProducto.selectedIndex];
         
@@ -42,7 +38,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Check if exists
         const existingItem = carrito.find(item => item.codigo === codigo);
         if (existingItem) {
             if (existingItem.cantidad + cantidad > stock) {
@@ -66,9 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
         selectProducto.selectedIndex = 0;
     });
 
-    // Render Cart
     function renderCarrito() {
-        // Clear table except emptyRow logic handled inside
         tablaVentas.innerHTML = '';
 
         if (carrito.length === 0) {
@@ -96,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
             tablaVentas.appendChild(tr);
         });
 
-        // Add event listeners to remove buttons
+
         document.querySelectorAll('.btn-remove').forEach(btn => {
             btn.addEventListener('click', function() {
                 const index = parseInt(this.dataset.index);
@@ -108,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTotals();
     }
 
-    // Update Totals
+    
     function updateTotals() {
         const total = carrito.reduce((sum, item) => sum + item.subtotal, 0);
         totalDisplay.textContent = `$${total.toFixed(2)}`;
@@ -116,7 +109,6 @@ document.addEventListener('DOMContentLoaded', function() {
         itemsCount.textContent = `${carrito.length} items`;
     }
 
-    // Finalize Sale
     btnFinalizar.addEventListener('click', async function() {
         if (carrito.length === 0) {
             alert('El carrito está vacío');

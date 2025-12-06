@@ -3,7 +3,6 @@ from config.db import get_cursor
 def create_sale(id_cliente, id_empleado, items):
     """
     Crea una venta y sus detalles en una transacción.
-    items: lista de diccionarios [{'codigo': 123, 'cantidad': 2}]
     """
     with get_cursor() as cur:
         # 1. Generar Folio (Max + 1)
@@ -28,7 +27,7 @@ def create_sale(id_cliente, id_empleado, items):
 def get_sales_report():
     """
     Obtiene reporte de ventas uniendo Venta, Cliente y Empleado.
-    Cumple con el requisito de 'Consulta de 3 tablas reunidas'.
+    Consulta de 3 tablas reunidas.
     """
     with get_cursor() as cur:
         sql = """

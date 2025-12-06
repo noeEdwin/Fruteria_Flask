@@ -18,20 +18,20 @@ def nueva_venta():
 def crear_venta():
     data = request.get_json()
     id_cliente = data.get('id_cliente')
-    items = data.get('items') # Lista de {codigo, cantidad}
+    items = data.get('items') 
     
     if not id_cliente or not items:
         return jsonify({'success': False, 'message': 'Datos incompletos'}), 400
         
     try:
-        # Usamos current_user.id_e que agregamos al modelo User
+        
         if not hasattr(current_user, 'id_e') or not current_user.id_e:
              return jsonify({'success': False, 'message': 'Error de sesión: Usuario no identificado'}), 403
 
         folio = create_sale(id_cliente, current_user.id_e, items)
         return jsonify({'success': True, 'message': f'Venta registrada con éxito. Folio: {folio}', 'folio': folio})
     except Exception as e:
-        # El trigger puede lanzar excepciones (ej. Stock insuficiente)
+        
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @ventas_bp.route("/ventas/reporte")
