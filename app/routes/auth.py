@@ -39,10 +39,14 @@ def logout():
     flash("Sesión cerrada", "info")
     return redirect(url_for("auth.login"))
 
+from app.models.product import get_dashboard_stats, get_low_stock_products
+
 @auth_bp.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html", user=current_user)
+    stats = get_dashboard_stats()
+    low_stock_products = get_low_stock_products()
+    return render_template("dashboard.html", user=current_user, stats=stats, low_stock_products=low_stock_products)
 
 @auth_bp.route("/")
 def index():
