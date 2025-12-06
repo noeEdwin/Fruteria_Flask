@@ -10,12 +10,16 @@ class User(UserMixin):
     @staticmethod
     def get(username):
         nombre = None
+        id_e = None
         try:
             with get_cursor() as cur:
-                cur.execute("SELECT nombre FROM empleado WHERE username = %s", (username,))
+                cur.execute("SELECT id_e, nombre FROM empleado WHERE username = %s", (username,))
                 row = cur.fetchone()
                 if row:
                     nombre = row['nombre']
+                    id_e = row['id_e']
         except Exception:
             pass 
-        return User(username, nombre)
+        user = User(username, nombre)
+        user.id_e = id_e
+        return user

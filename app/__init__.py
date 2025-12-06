@@ -26,4 +26,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(products_bp)
 
+    from app.routes.ventas import ventas_bp
+    app.register_blueprint(ventas_bp)
+
     return app

@@ -46,10 +46,10 @@
               <a class="nav-link" href="#">Clientes</a>
             </li>
             <li class="nav-item mx-3">
-              <a class="nav-link" href="#">Ventas</a>
+              <a class="nav-link {% if 'ventas.nueva_venta' in request.endpoint %}active{% endif %}" href="{{ url_for('ventas.nueva_venta') }}">Ventas</a>
             </li>
             <li class="nav-item mx-3">
-              <a class="nav-link" href="#">Reportes</a>
+              <a class="nav-link {% if 'ventas.reporte_ventas' in request.endpoint %}active{% endif %}" href="{{ url_for('ventas.reporte_ventas') }}">Reportes</a>
             </li>
           </ul>
         </div>
@@ -81,5 +81,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
   </body>
 </html>
