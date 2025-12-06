@@ -1,1 +1,0 @@
-DROP SCHEMA IF EXISTS fruteria_db CASCADE;
