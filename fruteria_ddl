@@ -1,6 +1,6 @@
-CREATE SCHEMA IF NOT EXISTS fruteria AUTHORIZATION postgres;
+CREATE SCHEMA IF NOT EXISTS fruteria_db AUTHORIZATION postgres;
 
-SET search_path TO fruteria;
+SET search_path TO fruteria_db;
 
 CREATE TABLE producto(
     codigo INTEGER PRIMARY KEY,
@@ -53,10 +53,9 @@ CREATE TABLE empleado(
     turno VARCHAR(20),
     salario NUMERIC(14,2),
     username VARCHAR(150) UNIQUE,
+    rol VARCHAR(20) DEFAULT 'vendedor',
     last_login TIMESTAMP WITH TIME ZONE,
-    is_active BOOLEAN DEFAULT true,
-    is_staff BOOLEAN DEFAULT false,
-    is_superuser BOOLEAN DEFAULT false
+    is_active BOOLEAN DEFAULT true
 );
 
 CREATE TABLE supervisor(
