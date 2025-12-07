@@ -97,7 +97,7 @@ a {
     border-radius: var(--radius-md);
     color: var(--color-text-muted);
     font-weight: 500;
-    transition: all 0.2s;
+    transition: background-color 0.2s, color 0.2s;
 }
 
 .nav-link:hover {
@@ -263,7 +263,7 @@ a {
     padding: 1rem;
     text-align: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
     border: 1px solid transparent;
     height: 100%; /* Ensure uniform height */
     display: flex;
@@ -301,7 +301,7 @@ a {
     border-radius: 50px;
     cursor: pointer;
     font-size: 0.9rem;
-    transition: all 0.2s;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .category-pill.active {
@@ -353,7 +353,15 @@ a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    outline: none;
+}
+
+.action-btn:focus {
+    outline: none;
+    box-shadow: none;
 }
 
 .action-btn:hover {

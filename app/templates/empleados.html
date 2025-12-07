@@ -76,78 +76,93 @@
                         </td>
                     </tr>
 
-                    <!-- DELETE MODAL -->
-                    <div class="modal fade" id="deleteModal{{ e.id_e }}" tabindex="-1">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content border-0 shadow-lg rounded-4">
-                                <div class="modal-body p-4 text-center">
-                                    <div class="mb-3 text-danger display-1">
-                                        <i class="bi bi-exclamation-triangle"></i>
-                                    </div>
-                                    <h5 class="modal-title fw-bold mb-2">Eliminar Empleado</h5>
-                                    <p class="text-muted mb-4">¿Estás seguro de eliminar a <strong>{{ e.nombre }}</strong>?<br>Esta acción no se puede deshacer.</p>
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal">Cancelar</button>
-                                        <a href="{{ url_for('empleado.delete_empleado', id_e=e.id_e) }}" class="btn btn-danger px-4 rounded-pill">Eliminar</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Edit Modal -->
-                    <div class="modal fade" id="editModal{{ e.id_e }}" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content border-0 shadow-lg rounded-4">
-                                <div class="modal-header border-0 pb-0">
-                                    <h5 class="modal-title fw-bold">Editar Empleado</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <form action="{{ url_for('empleado.update_empleado', id_e=e.id_e) }}" method="POST">
-                                    <div class="modal-body pt-4">
-                                        <div class="mb-3">
-                                            <label class="form-label small text-muted fw-bold">Nombre Completo</label>
-                                            <input type="text" class="form-control bg-light border-0" name="nombre" value="{{ e.nombre }}" required>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label small text-muted fw-bold">Turno</label>
-                                                <select class="form-select bg-light border-0" name="turno" required>
-                                                    <option value="matutino" {% if e.turno == 'matutino' %}selected{% endif %}>Matutino</option>
-                                                    <option value="vespertino" {% if e.turno == 'vespertino' %}selected{% endif %}>Vespertino</option>
-                                                    <option value="mixto" {% if e.turno == 'mixto' %}selected{% endif %}>Mixto</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label small text-muted fw-bold">Salario</label>
-                                                <input type="number" step="0.01" class="form-control bg-light border-0" name="salario" value="{{ e.salario }}" required>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label small text-muted fw-bold">Usuario</label>
-                                                <input type="text" class="form-control bg-light border-0" name="username" value="{{ e.username }}" required>
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label small text-muted fw-bold">Rol</label>
-                                                <select class="form-select bg-light border-0" name="rol" required>
-                                                    <option value="vendedor" {% if e.rol == 'vendedor' %}selected{% endif %}>Vendedor</option>
-                                                    <option value="almacenista" {% if e.rol == 'almacenista' %}selected{% endif %}>Almacenista</option>
-                                                    <option value="supervisor" {% if e.rol == 'supervisor' %}selected{% endif %}>Supervisor</option>
-                                                    <option value="admin" {% if e.rol == 'admin' %}selected{% endif %}>Admin</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer border-0 pt-0">
-                                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                                        <button type="submit" class="btn btn-primary-custom rounded-pill px-4">Guardar</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
                     {% endfor %}
+                </tbody>
+            </table>
+            {% if not empleados %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-people fs-1 mb-3 d-block opacity-25"></i>
+                    <p>No hay empleados registrados.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modals Loop -->
+{% for e in empleados %}
+    <!-- DELETE MODAL -->
+    <div class="modal fade" id="deleteModal{{ e.id_e }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3 text-danger display-1">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <h5 class="modal-title fw-bold mb-2">Eliminar Empleado</h5>
+                    <p class="text-muted mb-4">¿Estás seguro de eliminar a <strong>{{ e.nombre }}</strong>?<br>Esta acción no se puede deshacer.</p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                        <a href="{{ url_for('empleado.delete_empleado', id_e=e.id_e) }}" class="btn btn-danger px-4 rounded-pill">Eliminar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal{{ e.id_e }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Editar Empleado</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('empleado.update_empleado', id_e=e.id_e) }}" method="POST">
+                    <div class="modal-body pt-4">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">Nombre Completo</label>
+                            <input type="text" class="form-control bg-light border-0" name="nombre" value="{{ e.nombre }}" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small text-muted fw-bold">Turno</label>
+                                <select class="form-select bg-light border-0" name="turno" required>
+                                    <option value="matutino" {% if e.turno == 'matutino' %}selected{% endif %}>Matutino</option>
+                                    <option value="vespertino" {% if e.turno == 'vespertino' %}selected{% endif %}>Vespertino</option>
+                                    <option value="mixto" {% if e.turno == 'mixto' %}selected{% endif %}>Mixto</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small text-muted fw-bold">Salario</label>
+                                <input type="number" step="0.01" class="form-control bg-light border-0" name="salario" value="{{ e.salario }}" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small text-muted fw-bold">Usuario</label>
+                                <input type="text" class="form-control bg-light border-0" name="username" value="{{ e.username }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small text-muted fw-bold">Rol</label>
+                                <select class="form-select bg-light border-0" name="rol" required>
+                                    <option value="vendedor" {% if e.rol == 'vendedor' %}selected{% endif %}>Vendedor</option>
+                                    <option value="almacenista" {% if e.rol == 'almacenista' %}selected{% endif %}>Almacenista</option>
+                                    <option value="supervisor" {% if e.rol == 'supervisor' %}selected{% endif %}>Supervisor</option>
+                                    <option value="admin" {% if e.rol == 'admin' %}selected{% endif %}>Admin</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary-custom rounded-pill px-4">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endfor %}
                 </tbody>
             </table>
             {% if not empleados %}
