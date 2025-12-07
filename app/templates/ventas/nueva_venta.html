@@ -1,128 +1,106 @@
 {% extends "layout_dashboard.html" %}
 
-{% block title %}Nueva Venta - Frutería{% endblock %}
+{% block title %}Punto de Venta - Frutería{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row">
-        <!-- Left Column: Product Selection -->
-        <div class="col-lg-7">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold">Agregar Productos</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-8">
-                            <label class="form-label">Producto</label>
-                            <select class="form-select" id="selectProducto">
-                                <option value="" selected disabled>Buscar producto...</option>
-                                {% for p in productos %}
-                                <option value="{{ p.codigo }}" 
-                                        data-precio="{{ p.precio_v }}" 
-                                        data-nombre="{{ p.descripcion }}"
-                                        data-stock="{{ p.existencia }}">
-                                    {{ p.descripcion }} - ${{ p.precio_v }} (Stock: {{ p.existencia }})
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Cantidad</label>
-                            <div class="d-flex gap-2">
-                                <input type="number" class="form-control" id="inputCantidad" value="1" min="0.1" step="any">
-                                <button class="btn btn-primary px-4" id="btnAgregar" title="Agregar al carrito">
-                                    <i class="bi bi-plus-lg"></i> Agregar
-                                </button>
-                            </div>
-                        </div>
+<div class="container-fluid h-100 p-0">
+    <div class="row g-0 h-100">
+        <div class="col-lg-8 p-4 bg-light d-flex flex-column h-100" style="min-height: 100vh;">
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="fw-bold mb-0">Catálogo</h2>
+                    <div class="search-bar w-50">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="searchInput" placeholder="Buscar fruta, verdura..." class="form-control rounded-pill ps-5">
                     </div>
+                </div>
+                
+                <div class="d-flex gap-2 overflow-auto pb-2" id="categoryFilters">
+                    <span class="category-pill active" data-category="all">Todas</span>
+                    <span class="category-pill" data-category="fruta">Frutas</span>
+                    <span class="category-pill" data-category="verdura">Verduras</span>
                 </div>
             </div>
 
-            <!-- Products List (Cart) -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold">Detalle de Venta</h5>
-                    <span class="badge bg-light text-dark" id="itemsCount">0 items</span>
+            <div class="pos-grid flex-grow-1 overflow-auto pe-2" id="productGrid">
+                {% for p in productos %}
+                <div class="product-card" 
+                     data-codigo="{{ p.codigo }}" 
+                     data-nombre="{{ p.descripcion }}" 
+                     data-precio="{{ p.precio_v }}" 
+                     data-stock="{{ p.existencia }}"
+                     data-category="{{ p.categoria }}">
+                    <div class="product-img-wrapper">
+                        {% if p.categoria == 'fruta' %}
+                            🍎
+                        {% elif p.categoria == 'verdura' %}
+                            🥦
+                        {% else %}
+                            📦
+                        {% endif %}
+                    </div>
+                    <h6 class="fw-bold mb-1 text-truncate">{{ p.descripcion }}</h6>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span class="text-primary fw-bold">${{ p.precio_v }}</span>
+                        <small class="text-muted">{{ p.unidad_medida }}</small>
+                    </div>
+                    {% if p.existencia < 10 %}
+                        <div class="badge bg-danger-subtle text-danger mt-2 w-100">Poco Stock: {{ p.existencia }}</div>
+                    {% endif %}
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-4">Producto</th>
-                                <th class="text-center">Cant.</th>
-                                <th class="text-end">Precio</th>
-                                <th class="text-end">Subtotal</th>
-                                <th class="text-end pe-4">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaVentas">
-                            <!-- Items will be added here by JS -->
-                            <tr id="emptyRow">
-                                <td colspan="5" class="text-center py-5 text-muted">
-                                    <i class="bi bi-cart-x fs-1 d-block mb-2"></i>
-                                    No hay productos en la venta
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                {% endfor %}
             </div>
         </div>
 
-        <!-- Right Column: Summary & Checkout -->
-        <div class="col-lg-5">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-dark text-white py-3">
-                    <h5 class="mb-0 fw-bold">Datos de Venta</h5>
+        <div class="col-lg-4 bg-white border-start d-flex flex-column h-100 shadow-lg" style="position: fixed; right: 0; top: 0; bottom: 0; width: 33.33333%; z-index: 101;">
+            <div class="p-4 border-bottom bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Ticket de Venta</h5>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill" id="itemsCount">0 items</span>
                 </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Cliente</label>
-                        <select class="form-select" id="selectCliente">
-                            <option value="" selected disabled>Seleccionar cliente...</option>
-                            {% for c in clientes %}
-                            <option value="{{ c.id_c }}">
-                                {{ c.nombre_cliente }} ({{ c.tipo }})
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Vendedor</label>
-                        <input type="text" class="form-control bg-light" value="{{ current_user.nombre_completo }}" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Fecha</label>
-                        <input type="text" class="form-control bg-light" id="fechaActual" readonly>
-                    </div>
+                
+                <div class="mb-2">
+                    <select class="form-select form-select-sm bg-light border-0" id="selectCliente">
+                        <option value="" selected disabled>Seleccionar Cliente...</option>
+                        {% for c in clientes %}
+                        <option value="{{ c.id_c }}">{{ c.nombre_cliente }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="d-flex justify-content-between text-muted small">
+                    <span id="fechaActual"></span>
+                    <span>{{ current_user.username }}</span>
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm bg-primary text-white">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-white-50">Subtotal</span>
-                        <span class="h5 mb-0" id="subtotalDisplay">$0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <span class="text-white-50">IVA (0%)</span>
-                        <span class="h5 mb-0">$0.00</span>
-                    </div>
-                    <hr class="border-white-50">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <span class="h4 fw-bold mb-0">TOTAL</span>
-                        <span class="display-6 fw-bold mb-0" id="totalDisplay">$0.00</span>
-                    </div>
-                    <button class="btn btn-light w-100 py-3 fw-bold text-primary" id="btnFinalizar">
-                        <i class="bi bi-check-circle-fill me-2"></i> FINALIZAR VENTA
-                    </button>
+            <div class="flex-grow-1 overflow-auto p-3" id="ticketItems">
+                <div class="text-center py-5 text-muted" id="emptyState">
+                    <i class="bi bi-basket fs-1 mb-3 d-block opacity-25"></i>
+                    <p>Selecciona productos para agregar</p>
                 </div>
+            </div>
+
+            <div class="p-4 bg-light border-top mt-auto">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Subtotal</span>
+                    <span class="fw-bold" id="subtotalDisplay">$0.00</span>
+                </div>
+                <div class="d-flex justify-content-between mb-4">
+                    <span class="h4 fw-bold mb-0">Total</span>
+                    <span class="h3 fw-bold text-primary mb-0" id="totalDisplay">$0.00</span>
+                </div>
+                
+                <button class="btn btn-secondary-custom w-100 py-3 fs-5 fw-bold shadow-sm" id="btnFinalizar">
+                    COBRAR (F9)
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Quantity Modal (Hidden by default, used for manual input if needed, or we can use inline controls) -->
+<!-- For this design, we'll use inline controls in the ticket item -->
+
 {% endblock %}
 
 {% block scripts %}

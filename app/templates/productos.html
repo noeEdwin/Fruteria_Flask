@@ -3,180 +3,193 @@
 {% block title %}Productos - Frutería{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark">Productos</h2>
-        <button type="button" class="btn btn-dark rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addModal">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Productos</h2>
+            <p class="text-muted small mb-0">Gestiona tu inventario de frutas y verduras</p>
+        </div>
+        <button type="button" class="btn btn-primary-custom rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal">
             <i class="bi bi-plus-lg me-2"></i> Nuevo Producto
         </button>
     </div>
 
-    <!-- Minimalist Table -->
-    <div class="table-responsive shadow-sm rounded bg-white p-4">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th scope="col" class="text-secondary text-uppercase small">Código</th>
-                    <th scope="col" class="text-secondary text-uppercase small">Descripción</th>
-                    <th scope="col" class="text-secondary text-uppercase small">Categoría</th>
-                    <th scope="col" class="text-secondary text-uppercase small">Unidad</th>
-                    <th scope="col" class="text-secondary text-uppercase small">Existencia</th>
-                    <th scope="col" class="text-secondary text-uppercase small">Costo</th>
-                    <th scope="col" class="text-secondary text-uppercase small">Venta</th>
-                    <th scope="col" class="text-end text-secondary text-uppercase small">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in productos %}
-                <tr>
-                    <td class="fw-bold text-muted">#{{ p.codigo }}</td>
-                    <td>{{ p.descripcion }}</td>
-                    <td><span class="badge bg-light text-dark border">{{ p.categoria }}</span></td>
-                    <td class="text-muted small">{{ p.unidad_medida }}</td>
-                    <td>
-                        {% if p.existencia < 10 %}
-                            <span class="text-danger fw-bold">{{ p.existencia }}</span>
-                        {% else %}
-                            <span class="text-success">{{ p.existencia }}</span>
-                        {% endif %}
-                    </td>
-                    <td>${{ p.precio_c }}</td>
-                    <td class="fw-bold">${{ p.precio_v }}</td>
-                    <td class="text-end">
-                        <button class="btn btn-sm btn-link text-dark p-0 me-2" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#editModal{{ p.codigo }}">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <a href="{{ url_for('products.product_dashboard', codigo=p.codigo) }}" 
-                           class="btn btn-sm btn-link text-primary p-0 me-2" 
-                           title="Ver Dashboard">
-                            <i class="bi bi-speedometer2"></i>
-                        </a>
-                        <button class="btn btn-sm btn-link text-danger p-0" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#deleteModal{{ p.codigo }}">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-                <!-- DELETE MODAL -->
-                <div class="modal fade" id="deleteModal{{ p.codigo }}" tabindex="-1">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content border-0 shadow">
-                            <div class="modal-header border-0 bg-danger text-white">
-                                <h5 class="modal-title">⚠️ Confirmar Eliminación</h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p class="mb-2">¿Estás seguro de eliminar este producto?</p>
-                                <div class="bg-light p-3 rounded">
-                                    <strong>{{ p.descripcion }}</strong><br>
-                                    <small class="text-muted">Código: #{{ p.codigo }}</small>
+    <!-- Modern Table Card -->
+    <div class="card card-custom border-0">
+        <div class="table-responsive">
+            <table class="table table-custom align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col" class="ps-4">Producto</th>
+                        <th scope="col">Categoría</th>
+                        <th scope="col">Unidad</th>
+                        <th scope="col">Existencia</th>
+                        <th scope="col">Costo</th>
+                        <th scope="col">Venta</th>
+                        <th scope="col" class="text-end pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in productos %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                                    {% if p.categoria == 'fruta' %}🍎{% elif p.categoria == 'verdura' %}🥦{% else %}📦{% endif %}
                                 </div>
-                                <p class="mt-3 mb-0 small text-muted">
-                                    ⓘ Si el producto tiene ventas, compras o proveedores asociados, no podrá eliminarse.
-                                </p>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ p.descripcion }}</div>
+                                    <small class="text-muted">#{{ p.codigo }}</small>
+                                </div>
                             </div>
-                            <div class="modal-footer border-0">
-                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                                <a href="{{ url_for('products.delete_producto_route', codigo=p.codigo) }}" 
-                                class="btn btn-danger">Eliminar Producto</a>
+                        </td>
+                        <td>
+                            <span class="category-pill py-1 px-3 small {% if p.categoria == 'fruta' %}bg-warning-subtle text-warning-emphasis{% else %}bg-success-subtle text-success-emphasis{% endif %}">
+                                {{ p.categoria|capitalize }}
+                            </span>
+                        </td>
+                        <td class="text-muted small">{{ p.unidad_medida }}</td>
+                        <td>
+                            {% if p.existencia < 10 %}
+                                <span class="status-chip status-danger">Bajo: {{ p.existencia }}</span>
+                            {% else %}
+                                <span class="status-chip status-success">En Stock: {{ p.existencia }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">${{ p.precio_c }}</td>
+                        <td class="fw-bold text-dark">${{ p.precio_v }}</td>
+                        <td class="text-end pe-4">
+                            <button class="action-btn text-dark me-1" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#editModal{{ p.codigo }}"
+                                    title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <a href="{{ url_for('products.product_dashboard', codigo=p.codigo) }}" 
+                               class="action-btn text-primary me-1" 
+                               title="Ver Dashboard">
+                                <i class="bi bi-speedometer2"></i>
+                            </a>
+                            <button class="action-btn text-danger" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#deleteModal{{ p.codigo }}"
+                                    title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- DELETE MODAL -->
+                    <div class="modal fade" id="deleteModal{{ p.codigo }}" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow-lg rounded-4">
+                                <div class="modal-body p-4 text-center">
+                                    <div class="mb-3 text-danger display-1">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                    </div>
+                                    <h5 class="modal-title fw-bold mb-2">Eliminar Producto</h5>
+                                    <p class="text-muted mb-4">¿Estás seguro de eliminar <strong>{{ p.descripcion }}</strong>?<br>Esta acción no se puede deshacer.</p>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                                        <a href="{{ url_for('products.delete_producto_route', codigo=p.codigo) }}" class="btn btn-danger px-4 rounded-pill">Eliminar</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <!-- Edit Modal -->
-                <div class="modal fade" id="editModal{{ p.codigo }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content border-0 shadow">
-                            <div class="modal-header border-0">
-                                <h5 class="modal-title fw-bold">Editar Producto</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+                    <!-- Edit Modal -->
+                    <div class="modal fade" id="editModal{{ p.codigo }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow-lg rounded-4">
+                                <div class="modal-header border-0 pb-0">
+                                    <h5 class="modal-title fw-bold">Editar Producto</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form action="{{ url_for('products.edit_producto_route', codigo=p.codigo) }}" method="POST">
+                                    <div class="modal-body pt-4">
+                                        <div class="mb-3">
+                                            <label class="form-label small text-muted fw-bold">Descripción</label>
+                                            <input type="text" class="form-control bg-light border-0" name="descripcion" value="{{ p.descripcion }}" required>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label small text-muted fw-bold">Categoría</label>
+                                                <select class="form-select bg-light border-0" name="categoria" required>
+                                                    <option value="fruta" {% if p.categoria == 'fruta' %}selected{% endif %}>Fruta</option>
+                                                    <option value="verdura" {% if p.categoria == 'verdura' %}selected{% endif %}>Verdura</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label small text-muted fw-bold">Unidad</label>
+                                                <select class="form-select bg-light border-0" name="unidad_medida" required>
+                                                    <option value="kilogramo" {% if p.unidad_medida == 'kilogramo' %}selected{% endif %}>Kilogramo</option>
+                                                    <option value="pieza" {% if p.unidad_medida == 'pieza' %}selected{% endif %}>Pieza</option>
+                                                    <option value="ramito" {% if p.unidad_medida == 'ramito' %}selected{% endif %}>Ramito</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label small text-muted fw-bold">Existencia</label>
+                                                <input type="number" class="form-control bg-light border-0" name="existencia" value="{{ p.existencia }}" required>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label small text-muted fw-bold">Costo</label>
+                                                <input type="number" step="0.01" class="form-control bg-light border-0" name="precio_c" value="{{ p.precio_c }}" required>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label small text-muted fw-bold">Venta</label>
+                                                <input type="number" step="0.01" class="form-control bg-light border-0" name="precio_v" value="{{ p.precio_v }}" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer border-0 pt-0">
+                                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn btn-primary-custom rounded-pill px-4">Guardar</button>
+                                    </div>
+                                </form>
                             </div>
-                            <form action="{{ url_for('products.edit_producto_route', codigo=p.codigo) }}" method="POST">
-                                <div class="modal-body">
-                                    <div class="mb-3">
-                                        <label class="form-label small text-muted">Descripción</label>
-                                        <input type="text" class="form-control" name="descripcion" value="{{ p.descripcion }}" required>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label small text-muted">Categoría</label>
-                                            <select class="form-select" name="categoria" required>
-                                                <option value="fruta" {% if p.categoria == 'fruta' %}selected{% endif %}>Fruta</option>
-                                                <option value="verdura" {% if p.categoria == 'verdura' %}selected{% endif %}>Verdura</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label small text-muted">Unidad</label>
-                                            <select class="form-select" name="unidad_medida" required>
-                                                <option value="kilogramo" {% if p.unidad_medida == 'kilogramo' %}selected{% endif %}>Kilogramo</option>
-                                                <option value="pieza" {% if p.unidad_medida == 'pieza' %}selected{% endif %}>Pieza</option>
-                                                <option value="ramito" {% if p.unidad_medida == 'ramito' %}selected{% endif %}>Ramito</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-4 mb-3">
-                                            <label class="form-label small text-muted">Existencia</label>
-                                            <input type="number" class="form-control" name="existencia" value="{{ p.existencia }}" required>
-                                        </div>
-                                        <div class="col-md-4 mb-3">
-                                            <label class="form-label small text-muted">Costo</label>
-                                            <input type="number" step="0.01" class="form-control" name="precio_c" value="{{ p.precio_c }}" required>
-                                        </div>
-                                        <div class="col-md-4 mb-3">
-                                            <label class="form-label small text-muted">Venta</label>
-                                            <input type="number" step="0.01" class="form-control" name="precio_v" value="{{ p.precio_v }}" required>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal-footer border-0">
-                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="submit" class="btn btn-dark">Guardar Cambios</button>
-                                </div>
-                            </form>
                         </div>
                     </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if not productos %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-box-seam fs-1 mb-3 d-block opacity-25"></i>
+                    <p>No hay productos registrados.</p>
                 </div>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% if not productos %}
-            <div class="text-center py-5 text-muted">
-                <i class="bi bi-box-seam fs-1 mb-3 d-block"></i>
-                No hay productos registrados.
-            </div>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
 </div>
 
 <!-- Add Modal -->
 <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title fw-bold">Nuevo Producto</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ url_for('products.add_producto_route') }}" method="POST">
-                <div class="modal-body">
+                <div class="modal-body pt-4">
                     <div class="mb-3">
-                        <label class="form-label small text-muted">Descripción</label>
-                        <input type="text" class="form-control" name="descripcion" required>
+                        <label class="form-label small text-muted fw-bold">Descripción</label>
+                        <input type="text" class="form-control bg-light border-0" name="descripcion" required>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label small text-muted">Categoría</label>
-                            <select class="form-select" name="categoria" required>
+                            <label class="form-label small text-muted fw-bold">Categoría</label>
+                            <select class="form-select bg-light border-0" name="categoria" required>
                                 <option value="fruta">Fruta</option>
                                 <option value="verdura">Verdura</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label small text-muted">Unidad</label>
-                            <select class="form-select" name="unidad_medida" required>
+                            <label class="form-label small text-muted fw-bold">Unidad</label>
+                            <select class="form-select bg-light border-0" name="unidad_medida" required>
                                 <option value="kilogramo">Kilogramo</option>
                                 <option value="pieza">Pieza</option>
                                 <option value="ramito">Ramito</option>
@@ -185,22 +198,22 @@
                     </div>
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label class="form-label small text-muted">Existencia</label>
-                            <input type="number" class="form-control" name="existencia" required>
+                            <label class="form-label small text-muted fw-bold">Existencia</label>
+                            <input type="number" class="form-control bg-light border-0" name="existencia" required>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label small text-muted">Costo</label>
-                            <input type="number" step="0.01" class="form-control" name="precio_c" required>
+                            <label class="form-label small text-muted fw-bold">Costo</label>
+                            <input type="number" step="0.01" class="form-control bg-light border-0" name="precio_c" required>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label small text-muted">Venta</label>
-                            <input type="number" step="0.01" class="form-control" name="precio_v" required>
+                            <label class="form-label small text-muted fw-bold">Venta</label>
+                            <input type="number" step="0.01" class="form-control bg-light border-0" name="precio_v" required>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-dark">Guardar Producto</button>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-custom rounded-pill px-4">Guardar</button>
                 </div>
             </form>
         </div>
