@@ -252,8 +252,9 @@ a {
 /* POS Specific */
 .pos-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 1rem;
+    align-content: start; /* Prevent stretching */
 }
 
 .product-card {
@@ -264,6 +265,9 @@ a {
     cursor: pointer;
     transition: all 0.2s;
     border: 1px solid transparent;
+    height: 100%; /* Ensure uniform height */
+    display: flex;
+    flex-direction: column;
 }
 
 .product-card:hover {
@@ -272,15 +276,22 @@ a {
 }
 
 .product-img-wrapper {
-    width: 80px;
-    height: 80px;
+    width: 100%;
+    height: 120px; /* Fixed height for image area */
     margin: 0 auto 0.5rem;
     background-color: var(--color-bg);
-    border-radius: 50%;
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2rem;
+    overflow: hidden;
+}
+
+.product-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .category-pill {

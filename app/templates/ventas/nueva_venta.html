@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container-fluid h-100 p-0">
     <div class="row g-0 h-100">
-        <div class="col-lg-8 p-4 bg-light d-flex flex-column h-100" style="min-height: 100vh;">
+        <div class="col-12 p-4 bg-light d-flex flex-column h-100 transition-all" id="productsColumn" style="min-height: 100vh;">
             <div class="mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h2 class="fw-bold mb-0">Catálogo</h2>
@@ -17,8 +17,8 @@
                 
                 <div class="d-flex gap-2 overflow-auto pb-2" id="categoryFilters">
                     <span class="category-pill active" data-category="all">Todas</span>
-                    <span class="category-pill" data-category="fruta">Frutas</span>
-                    <span class="category-pill" data-category="verdura">Verduras</span>
+                    <span class="category-pill" data-category="frutas">Frutas</span>
+                    <span class="category-pill" data-category="verduras">Verduras</span>
                 </div>
             </div>
 
@@ -31,13 +31,10 @@
                      data-stock="{{ p.existencia }}"
                      data-category="{{ p.categoria }}">
                     <div class="product-img-wrapper">
-                        {% if p.categoria == 'fruta' %}
-                            🍎
-                        {% elif p.categoria == 'verdura' %}
-                            🥦
-                        {% else %}
-                            📦
-                        {% endif %}
+                        <img src="{{ url_for('static', filename='images/productos/' ~ p.codigo ~ '.jpg') }}" 
+                             alt="{{ p.descripcion }}" 
+                             class="product-img"
+                             onerror="this.onerror=null; this.parentElement.innerHTML='📦'; this.remove();">
                     </div>
                     <h6 class="fw-bold mb-1 text-truncate">{{ p.descripcion }}</h6>
                     <div class="d-flex justify-content-between align-items-center mt-2">
@@ -52,11 +49,16 @@
             </div>
         </div>
 
-        <div class="col-lg-4 bg-white border-start d-flex flex-column h-100 shadow-lg" style="position: fixed; right: 0; top: 0; bottom: 0; width: 33.33333%; z-index: 101;">
+        <div class="col-lg-4 bg-white border rounded-4 shadow-lg d-none" id="ticketColumn" style="max-height: calc(100vh - 2rem); position: sticky; top: 1rem; overflow-y: auto;">
             <div class="p-4 border-bottom bg-white">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0">Ticket de Venta</h5>
-                    <span class="badge bg-primary-subtle text-primary rounded-pill" id="itemsCount">0 items</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary-subtle text-primary rounded-pill" id="itemsCount">0 items</span>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="toggleTicket()" title="Ocultar ticket">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="mb-2">

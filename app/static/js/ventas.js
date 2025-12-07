@@ -62,22 +62,43 @@ document.addEventListener('DOMContentLoaded', function() {
         const cards = document.querySelectorAll('.product-card');
         cards.forEach(card => {
             const nombre = card.dataset.nombre.toLowerCase();
-            const cardCategory = card.dataset.category;
+            const cardCategory = card.dataset.category.toLowerCase().trim();
+            const targetCategory = category.toLowerCase().trim();
             
             const matchesTerm = nombre.includes(term);
-            const matchesCategory = category === 'all' || cardCategory === category;
+            const matchesCategory = targetCategory === 'all' || cardCategory === targetCategory;
 
             if (matchesTerm && matchesCategory) {
-                card.style.display = 'block';
+                card.style.display = 'flex'; // Changed to flex to maintain layout
             } else {
                 card.style.display = 'none';
             }
         });
     }
 
+    // Expose to global scope for the button onclick
+    window.toggleTicket = function() {
+        const ticketColumn = document.getElementById('ticketColumn');
+        const productsColumn = document.getElementById('productsColumn');
+        
+        ticketColumn.classList.add('d-none');
+        productsColumn.classList.remove('col-lg-8');
+        productsColumn.classList.add('col-12');
+    }
+
     // --- Cart Logic ---
 
     function addToCart(codigo, nombre, precio, stock, category) {
+        // Show ticket column if hidden
+        const ticketColumn = document.getElementById('ticketColumn');
+        const productsColumn = document.getElementById('productsColumn');
+        
+        if (ticketColumn.classList.contains('d-none')) {
+            ticketColumn.classList.remove('d-none');
+            productsColumn.classList.remove('col-12');
+            productsColumn.classList.add('col-lg-8');
+        }
+
         const existingItem = carrito.find(item => item.codigo === codigo);
 
         if (existingItem) {
