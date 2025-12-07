@@ -61,11 +61,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function filterGrid(term, category) {
         const cards = document.querySelectorAll('.product-card');
         cards.forEach(card => {
-            const nombre = card.dataset.nombre.toLowerCase();
+            const nombre = card.dataset.nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
             const cardCategory = card.dataset.category.toLowerCase().trim();
             const targetCategory = category.toLowerCase().trim();
             
-            const matchesTerm = nombre.includes(term);
+            const matchesTerm = nombre.includes(term.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
             const matchesCategory = targetCategory === 'all' || cardCategory === targetCategory;
 
             if (matchesTerm && matchesCategory) {

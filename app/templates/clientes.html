@@ -9,12 +9,18 @@
             <h6 class="text-uppercase text-muted ls-1 mb-1">Gestión</h6>
             <h1 class="h2 fw-bold">Clientes</h1>
         </div>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCliente" onclick="resetForm()">
-            <i class="bi bi-plus-lg me-2"></i> Nuevo Cliente
-        </button>
+        <div class="d-flex gap-3">
+            <div class="search-bar">
+                <i class="bi bi-search"></i>
+                <input type="text" id="clientSearch" placeholder="Buscar cliente...">
+            </div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCliente" onclick="resetForm()">
+                <i class="bi bi-plus-lg me-2"></i> Nuevo Cliente
+            </button>
+        </div>
     </div>
 
-    <div class="card border-0 shadow-sm">
+    <div class="card border-0 shadow-sm" id="clientsTable">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -112,6 +118,12 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/search_utils.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        filterTable('clientSearch', '#clientsTable');
+    });
+</script>
 <script>
 function toggleNameLabel() {
     const tipo = document.getElementById('selectTipo').value;

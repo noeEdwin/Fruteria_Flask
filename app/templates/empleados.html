@@ -9,13 +9,19 @@
             <h2 class="fw-bold text-dark mb-1">Empleados</h2>
             <p class="text-muted small mb-0">Gestiona el personal de tu frutería</p>
         </div>
-        <button type="button" class="btn btn-primary-custom rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal">
-            <i class="bi bi-plus-lg me-2"></i> Nuevo Empleado
-        </button>
+        <div class="d-flex gap-3">
+            <div class="search-bar">
+                <i class="bi bi-search"></i>
+                <input type="text" id="employeeSearch" placeholder="Buscar empleado...">
+            </div>
+            <button type="button" class="btn btn-primary-custom rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal">
+                <i class="bi bi-plus-lg me-2"></i> Nuevo Empleado
+            </button>
+        </div>
     </div>
 
     <!-- Modern Table Card -->
-    <div class="card card-custom border-0">
+    <div class="card card-custom border-0" id="employeesTable">
         <div class="table-responsive">
             <table class="table table-custom align-middle mb-0">
                 <thead>
@@ -231,4 +237,10 @@
         </div>
     </div>
 </div>
+<script src="{{ url_for('static', filename='js/search_utils.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        filterTable('employeeSearch', '#employeesTable');
+    });
+</script>
 {% endblock %}

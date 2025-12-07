@@ -9,12 +9,18 @@
             <h6 class="text-uppercase text-muted ls-1 mb-1">Gestión</h6>
             <h1 class="h2 fw-bold">Proveedores</h1>
         </div>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalProveedor" onclick="resetForm()">
-            <i class="bi bi-plus-lg me-2"></i> Nuevo Proveedor
-        </button>
+        <div class="d-flex gap-3">
+            <div class="search-bar">
+                <i class="bi bi-search"></i>
+                <input type="text" id="providerSearch" placeholder="Buscar proveedor...">
+            </div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalProveedor" onclick="resetForm()">
+                <i class="bi bi-plus-lg me-2"></i> Nuevo Proveedor
+            </button>
+        </div>
     </div>
 
-    <div class="card border-0 shadow-sm">
+    <div class="card border-0 shadow-sm" id="providersTable">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -99,6 +105,12 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/search_utils.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        filterTable('providerSearch', '#providersTable');
+    });
+</script>
 <script>
 function resetForm() {
     document.getElementById('formProveedor').reset();

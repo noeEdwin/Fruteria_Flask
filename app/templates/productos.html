@@ -9,13 +9,19 @@
             <h2 class="fw-bold text-dark mb-1">Productos</h2>
             <p class="text-muted small mb-0">Gestiona tu inventario de frutas y verduras</p>
         </div>
-        <button type="button" class="btn btn-primary-custom rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal">
-            <i class="bi bi-plus-lg me-2"></i> Nuevo Producto
-        </button>
+        <div class="d-flex gap-3">
+            <div class="search-bar">
+                <i class="bi bi-search"></i>
+                <input type="text" id="productSearch" placeholder="Buscar producto...">
+            </div>
+            <button type="button" class="btn btn-primary-custom rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal">
+                <i class="bi bi-plus-lg me-2"></i> Nuevo Producto
+            </button>
+        </div>
     </div>
 
     <!-- Modern Table Card -->
-    <div class="card card-custom border-0">
+    <div class="card card-custom border-0" id="productsTable">
         <div class="table-responsive">
             <table class="table table-custom align-middle mb-0">
                 <thead>
@@ -131,16 +137,16 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">Categoría</label>
                                 <select class="form-select bg-light border-0" name="categoria" required>
-                                    <option value="fruta" {% if p.categoria == 'fruta' %}selected{% endif %}>Fruta</option>
-                                    <option value="verdura" {% if p.categoria == 'verdura' %}selected{% endif %}>Verdura</option>
+                                    <option value="frutas" {% if p.categoria in ['frutas', 'fruta'] %}selected{% endif %}>Frutas</option>
+                                    <option value="verduras" {% if p.categoria in ['verduras', 'verdura'] %}selected{% endif %}>Verduras</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">Unidad</label>
                                 <select class="form-select bg-light border-0" name="unidad_medida" required>
-                                    <option value="kilogramo" {% if p.unidad_medida == 'kilogramo' %}selected{% endif %}>Kilogramo</option>
-                                    <option value="pieza" {% if p.unidad_medida == 'pieza' %}selected{% endif %}>Pieza</option>
-                                    <option value="ramito" {% if p.unidad_medida == 'ramito' %}selected{% endif %}>Ramito</option>
+                                    <option value="kg" {% if p.unidad_medida in ['kg', 'kilogramo'] %}selected{% endif %}>Kilogramo (kg)</option>
+                                    <option value="pza" {% if p.unidad_medida in ['pza', 'pz', 'pieza'] %}selected{% endif %}>Pieza (pza)</option>
+                                    <option value="manojo" {% if p.unidad_medida in ['manojo', 'ramito'] %}selected{% endif %}>Manojo</option>
                                 </select>
                             </div>
                         </div>
@@ -187,16 +193,16 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label small text-muted fw-bold">Categoría</label>
                             <select class="form-select bg-light border-0" name="categoria" required>
-                                <option value="fruta">Fruta</option>
-                                <option value="verdura">Verdura</option>
+                                <option value="frutas">Frutas</option>
+                                <option value="verduras">Verduras</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label small text-muted fw-bold">Unidad</label>
                             <select class="form-select bg-light border-0" name="unidad_medida" required>
-                                <option value="kilogramo">Kilogramo</option>
-                                <option value="pieza">Pieza</option>
-                                <option value="ramito">Ramito</option>
+                                <option value="kg">Kilogramo (kg)</option>
+                                <option value="pza">Pieza (pza)</option>
+                                <option value="manojo">Manojo</option>
                             </select>
                         </div>
                     </div>
@@ -223,4 +229,10 @@
         </div>
     </div>
 </div>
+<script src="{{ url_for('static', filename='js/search_utils.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        filterTable('productSearch', '#productsTable');
+    });
+</script>
 {% endblock %}
