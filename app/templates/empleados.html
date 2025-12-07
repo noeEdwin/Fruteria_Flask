@@ -1,0 +1,204 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Empleados - Frutería{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">Empleados</h2>
+        <button type="button" class="btn btn-dark rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="bi bi-plus-lg me-2"></i> Nuevo Empleado
+        </button>
+    </div>
+
+    <!-- Minimalist Table -->
+    <div class="table-responsive shadow-sm rounded bg-white p-4">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" class="text-secondary text-uppercase small">ID</th>
+                    <th scope="col" class="text-secondary text-uppercase small">Nombre</th>
+                    <th scope="col" class="text-secondary text-uppercase small">Turno</th>
+                    <th scope="col" class="text-secondary text-uppercase small">Salario</th>
+                    <th scope="col" class="text-secondary text-uppercase small">Usuario</th>
+                    <th scope="col" class="text-secondary text-uppercase small">Rol</th>
+                    <th scope="col" class="text-secondary text-uppercase small">Estado</th>
+                    <th scope="col" class="text-end text-secondary text-uppercase small">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in empleados %}
+                <tr>
+                    <td class="fw-bold text-muted">#{{ e.id_e }}</td>
+                    <td>{{ e.nombre }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ e.turno }}</span></td>
+                    <td>${{ e.salario }}</td>
+                    <td class="text-muted small">{{ e.username }}</td>
+                    <td><span class="badge bg-info text-dark">{{ e.rol }}</span></td>
+                    <td>
+                        {% if e.is_active %}
+                            <span class="text-success fw-bold">Activo</span>
+                        {% else %}
+                            <span class="text-danger fw-bold">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-link text-dark p-0 me-2" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#editModal{{ e.id_e }}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link text-danger p-0" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#deleteModal{{ e.id_e }}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                <!-- DELETE MODAL -->
+                <div class="modal fade" id="deleteModal{{ e.id_e }}" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header border-0 bg-danger text-white">
+                                <h5 class="modal-title">⚠️ Confirmar Eliminación</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="mb-2">¿Estás seguro de eliminar este empleado?</p>
+                                <div class="bg-light p-3 rounded">
+                                    <strong>{{ e.nombre }}</strong><br>
+                                    <small class="text-muted">ID: #{{ e.id_e }}</small>
+                                </div>
+                                <p class="mt-3 mb-0 small text-muted">
+                                    ⓘ Esta acción podría fallar si el empleado tiene registros asociados.
+                                </p>
+                            </div>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                                <a href="{{ url_for('empleado.delete_empleado', id_e=e.id_e) }}" 
+                                class="btn btn-danger">Eliminar Empleado</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Edit Modal -->
+                <div class="modal fade" id="editModal{{ e.id_e }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title fw-bold">Editar Empleado</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form action="{{ url_for('empleado.update_empleado', id_e=e.id_e) }}" method="POST">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted">Nombre Completo</label>
+                                        <input type="text" class="form-control" name="nombre" value="{{ e.nombre }}" required>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label small text-muted">Turno</label>
+                                            <select class="form-select" name="turno" required>
+                                                <option value="matutino" {% if e.turno == 'matutino' %}selected{% endif %}>Matutino</option>
+                                                <option value="vespertino" {% if e.turno == 'vespertino' %}selected{% endif %}>Vespertino</option>
+                                                <option value="mixto" {% if e.turno == 'mixto' %}selected{% endif %}>Mixto</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label small text-muted">Salario</label>
+                                            <input type="number" step="0.01" class="form-control" name="salario" value="{{ e.salario }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label small text-muted">Usuario</label>
+                                            <input type="text" class="form-control" name="username" value="{{ e.username }}" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label small text-muted">Rol</label>
+                                            <select class="form-select" name="rol" required>
+                                                <option value="vendedor" {% if e.rol == 'vendedor' %}selected{% endif %}>Vendedor</option>
+                                                <option value="almacenista" {% if e.rol == 'almacenista' %}selected{% endif %}>Almacenista</option>
+                                                <option value="supervisor" {% if e.rol == 'supervisor' %}selected{% endif %}>Supervisor</option>
+                                                <option value="admin" {% if e.rol == 'admin' %}selected{% endif %}>Admin</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-dark">Guardar Cambios</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if not empleados %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-people fs-1 mb-3 d-block"></i>
+                No hay empleados registrados.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Nuevo Empleado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('empleado.add_empleado') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">ID Empleado</label>
+                        <input type="number" class="form-control" name="id_e" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Nombre Completo</label>
+                        <input type="text" class="form-control" name="nombre" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small text-muted">Turno</label>
+                            <select class="form-select" name="turno" required>
+                                <option value="matutino">Matutino</option>
+                                <option value="vespertino">Vespertino</option>
+                                <option value="mixto">Mixto</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small text-muted">Salario</label>
+                            <input type="number" step="0.01" class="form-control" name="salario" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small text-muted">Usuario</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small text-muted">Rol</label>
+                            <select class="form-select" name="rol" required>
+                                <option value="vendedor">Vendedor</option>
+                                <option value="almacenista">Almacenista</option>
+                                <option value="supervisor">Supervisor</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-dark">Guardar Empleado</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
