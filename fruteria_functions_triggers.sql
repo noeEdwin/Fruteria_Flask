@@ -1,11 +1,9 @@
 -- Script de Funciones y Triggers para Frutería
--- Autor: Asistente de IA
--- Fecha: 2025-12-06
 
 SET search_path TO fruteria_db;
 
 -- ==========================================
--- 1. FUNCIONES ALMACENADAS (STORED FUNCTIONS)
+-- 1. FUNCIONES ALMACENADAS 
 -- ==========================================
 
 -- Función 1: Calcular el total de una venta
@@ -84,6 +82,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS tg_actualizar_stock_venta ON detalle_venta;
 CREATE TRIGGER tg_actualizar_stock_venta
 AFTER INSERT ON detalle_venta
 FOR EACH ROW
@@ -101,6 +100,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS tg_actualizar_stock_compra ON detalle_compra;
 CREATE TRIGGER tg_actualizar_stock_compra
 AFTER INSERT ON detalle_compra
 FOR EACH ROW
@@ -125,6 +125,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS tg_verificar_stock_suficiente ON detalle_venta;
 CREATE TRIGGER tg_verificar_stock_suficiente
 BEFORE INSERT ON detalle_venta
 FOR EACH ROW
@@ -142,6 +143,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS tg_validar_precios_producto ON producto;
 CREATE TRIGGER tg_validar_precios_producto
 BEFORE INSERT OR UPDATE ON producto
 FOR EACH ROW

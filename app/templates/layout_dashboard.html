@@ -63,9 +63,14 @@
               <a class="nav-link {% if 'clientes' in request.endpoint %}active{% endif %}" href="{{ url_for('clientes.index') }}">Clientes</a>
             </li>
             <li class="nav-item mx-3">
-              <a class="nav-link {% if request.endpoint == 'products.home' %}active{% endif %}" href="{{ url_for('products.home') }}">Dashboard</a>
+              <a class="nav-link {% if 'ventas.nueva_venta' in request.endpoint %}active{% endif %}" href="{{ url_for('ventas.nueva_venta') }}">Ventas</a>
             </li>
-            {% endif %}
+            <li class="nav-item mx-3">
+              <a class="nav-link {% if 'compras' in request.endpoint %}active{% endif %}" href="{{ url_for('compras.reporte_compras') }}">Compras</a>
+            </li>
+            <li class="nav-item mx-3">
+              <a class="nav-link {% if 'ventas.reporte_ventas' in request.endpoint %}active{% endif %}" href="{{ url_for('ventas.reporte_ventas') }}">Reportes</a>
+            </li>
           </ul>
         </div>
         

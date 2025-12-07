@@ -1,0 +1,65 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Reporte de Compras - Frutería{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h6 class="text-uppercase text-muted ls-1 mb-1">Historial</h6>
+            <h1 class="h2 fw-bold">Reporte de Compras</h1>
+        </div>
+        <a href="{{ url_for('compras.nueva_compra') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i> Nueva Compra
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Folio</th>
+                            <th>Fecha</th>
+                            <th>No. Lote</th>
+                            <th>Proveedor</th>
+                            <th>Empleado</th>
+                            <th class="text-end pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in compras %}
+                        <tr>
+                            <td class="ps-4 fw-bold">#{{ c.folio_c }}</td>
+                            <td>{{ c.fecha }}</td>
+                            <td>{{ c.no_lote }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light rounded-circle p-2 me-2 text-primary">
+                                        <i class="bi bi-truck"></i>
+                                    </div>
+                                    {{ c.proveedor }}
+                                </div>
+                            </td>
+                            <td>{{ c.empleado }}</td>
+                            <td class="text-end pe-4">
+                                <a href="{{ url_for('compras.detalle_compra', folio_c=c.folio_c) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Ver Detalles
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                No hay compras registradas
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

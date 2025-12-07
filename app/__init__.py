@@ -35,4 +35,7 @@ def create_app():
     from app.routes.proveedores import proveedores_bp
     app.register_blueprint(proveedores_bp)
 
+    from app.routes.compras import compras_bp
+    app.register_blueprint(compras_bp)
+
     return app
