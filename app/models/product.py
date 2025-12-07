@@ -121,3 +121,19 @@ def get_low_stock_products(limit=5):
     with get_cursor() as cur:
         cur.execute("SELECT * FROM producto WHERE existencia < 10 ORDER BY existencia ASC LIMIT %s", (limit,))
         return cur.fetchall()
+
+def get_top_categories(limit=5):
+    """
+    Obtiene las categorías más vendidas basándose en la cantidad de productos vendidos.
+    """
+    with get_cursor() as cur:
+        sql = """
+        SELECT p.categoria, SUM(dv.cantidad) as total_vendido
+        FROM detalle_venta dv
+        JOIN producto p ON dv.codigo = p.codigo
+        GROUP BY p.categoria
+        ORDER BY total_vendido DESC
+        LIMIT %s
+        """
+        cur.execute(sql, (limit,))
+        return cur.fetchall()

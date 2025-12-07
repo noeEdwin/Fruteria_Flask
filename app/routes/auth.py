@@ -39,7 +39,9 @@ def logout():
     flash("Sesión cerrada", "info")
     return redirect(url_for("auth.login"))
 
-from app.models.product import get_dashboard_stats, get_low_stock_products
+from app.models.product import get_dashboard_stats, get_low_stock_products, get_top_categories
+from app.models.venta import get_weekly_sales, get_daily_stats
+import datetime
 
 @auth_bp.route("/dashboard")
 @login_required
@@ -49,7 +51,36 @@ def dashboard():
         
     stats = get_dashboard_stats()
     low_stock = get_low_stock_products()
-    return render_template("dashboard.html", user=current_user, stats=stats, low_stock_products=low_stock)
+    weekly_sales_raw = get_weekly_sales()
+    top_categories_raw = get_top_categories()
+    daily_stats = get_daily_stats()
+    
+    # Process data for JSON serialization
+    weekly_sales = []
+    for item in weekly_sales_raw:
+        weekly_sales.append({
+            'dia_nombre': item['dia_nombre'],
+            'total': float(item['total']) if item['total'] else 0.0
+        })
+        
+    top_categories = []
+    for item in top_categories_raw:
+        top_categories.append({
+            'categoria': item['categoria'],
+            'total_vendido': int(item['total_vendido']) if item['total_vendido'] else 0
+        })
+    
+    # Format current date
+    now = datetime.datetime.now().strftime("%d %B, %Y")
+    
+    return render_template("dashboard.html", 
+                           user=current_user, 
+                           stats=stats, 
+                           low_stock_products=low_stock,
+                           weekly_sales=weekly_sales,
+                           top_categories=top_categories,
+                           daily_stats=daily_stats,
+                           now=now)
 
 @auth_bp.route("/")
 def index():

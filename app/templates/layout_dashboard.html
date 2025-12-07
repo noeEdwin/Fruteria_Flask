@@ -104,16 +104,8 @@
         <main class="main-content">
             <!-- Header -->
             <header class="top-header">
-                <div class="search-bar">
-                    <i class="bi bi-search"></i>
-                    <input type="text" placeholder="Buscar producto, cliente..." aria-label="Search">
-                </div>
-                
-                <div class="user-menu">
-                    <div class="notification-btn">
-                        <i class="bi bi-bell"></i>
-                        <span class="notification-badge"></span>
-                    </div>
+                <div class="user-menu ms-auto">
+
                     <div class="user-profile">
                         <div class="user-avatar">
                             {{ current_user.username[0] | upper }}

@@ -44,3 +44,53 @@ def get_sales_report():
         """
         cur.execute(sql)
         return cur.fetchall()
+
+def get_weekly_sales():
+    """
+    Obtiene las ventas de los últimos 7 días.
+    Retorna una lista de diccionarios con 'fecha' y 'total'.
+    """
+    with get_cursor() as cur:
+        # Generar serie de últimos 7 días para asegurar que aparezcan días con 0 ventas
+        sql = """
+        WITH last_7_days AS (
+            SELECT generate_series(
+                CURRENT_DATE - INTERVAL '6 days',
+                CURRENT_DATE,
+                '1 day'::interval
+            )::date AS fecha
+        )
+        SELECT 
+            TO_CHAR(d.fecha, 'Dy') as dia_nombre,
+            d.fecha,
+            COALESCE(SUM(p.precio_v * dv.cantidad), 0) as total
+        FROM last_7_days d
+        LEFT JOIN venta v ON v.fecha = d.fecha
+        LEFT JOIN detalle_venta dv ON v.folio_v = dv.folio_v
+        LEFT JOIN producto p ON dv.codigo = p.codigo
+        GROUP BY d.fecha
+        ORDER BY d.fecha
+        """
+        cur.execute(sql)
+        return cur.fetchall()
+
+def get_daily_stats():
+    """
+    Obtiene estadísticas de ventas del día actual:
+    - Total vendido
+    - Número de pedidos (ventas)
+    - Ganancia estimada (Venta - Costo)
+    """
+    with get_cursor() as cur:
+        sql = """
+        SELECT 
+            COUNT(DISTINCT v.folio_v) as pedidos,
+            COALESCE(SUM(p.precio_v * dv.cantidad), 0) as ventas_hoy,
+            COALESCE(SUM((p.precio_v - p.precio_c) * dv.cantidad), 0) as ganancia
+        FROM venta v
+        JOIN detalle_venta dv ON v.folio_v = dv.folio_v
+        JOIN producto p ON dv.codigo = p.codigo
+        WHERE v.fecha = CURRENT_DATE
+        """
+        cur.execute(sql)
+        return cur.fetchone()
