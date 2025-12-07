@@ -33,6 +33,11 @@
         <!-- Centered Links -->
         <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
           <ul class="navbar-nav">
+            <!-- Link Inicio/Home para todos -->
+            <li class="nav-item mx-3">
+              <a class="nav-link {% if request.endpoint == 'auth.dashboard' %}active{% endif %}" href="{{ url_for('auth.dashboard') }}">Inicio</a>
+            </li>
+
             <!-- Vendedores, Supervisores y Admins ven Ventas (Almacenista NO) -->
             {% if current_user.es_vendedor and not current_user.rol == 'almacenista' %}
             <li class="nav-item mx-3">
@@ -67,12 +72,6 @@
             </li>
             <li class="nav-item mx-3">
               <a class="nav-link {% if 'empleado' in request.endpoint %}active{% endif %}" href="{{ url_for('empleado.list_empleados') }}">Empleados</a>
-            </li>
-            <li class="nav-item mx-3">
-              <a class="nav-link {% if 'ventas.nueva_venta' in request.endpoint %}active{% endif %}" href="{{ url_for('ventas.nueva_venta') }}">Ventas</a>
-            </li>
-            <li class="nav-item mx-3">
-              <a class="nav-link {% if 'ventas.reporte_ventas' in request.endpoint %}active{% endif %}" href="{{ url_for('ventas.reporte_ventas') }}">Reportes</a>
             </li>
             {% endif %}
           </ul>
