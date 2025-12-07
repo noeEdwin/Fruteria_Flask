@@ -32,10 +32,9 @@ def get_purchases_report():
         sql = """
         SELECT c.folio_c, c.fecha, c.no_lote,
                p.nombre as proveedor,
-               e.nombre as empleado
+               get_empleado_nombre(c.id_e) as empleado
         FROM compra c
         JOIN proveedor p ON c.id_p = p.id_p
-        JOIN empleado e ON c.id_e = e.id_e
         ORDER BY c.folio_c DESC
         """
         cur.execute(sql)

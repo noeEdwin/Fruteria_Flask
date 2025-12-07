@@ -31,14 +31,23 @@ class User(UserMixin):
         id_e = None
         rol = 'vendedor'
         try:
-            with get_cursor() as cur:
+            # Usamos una conexión privilegiada (postgres) para leer la info del usuario
+            # ya que el usuario en sesión podría no tener permisos para leer la tabla empleado
+            import psycopg2
+            from config.config import DB_CONFIG
+            
+            conn = psycopg2.connect(**DB_CONFIG)
+            with conn.cursor() as cur:
+                cur.execute("SET search_path TO fruteria_db")
                 cur.execute("SELECT id_e, nombre, rol FROM empleado WHERE username = %s", (username,))
                 row = cur.fetchone()
                 if row:
-                    nombre = row['nombre']
-                    id_e = row['id_e']
-                    rol = row.get('rol', 'vendedor')
-        except Exception:
+                    id_e = row[0]
+                    nombre = row[1]
+                    rol = row[2] if row[2] else 'vendedor'
+            conn.close()
+        except Exception as e:
+            print(f"Error loading user {username}: {e}")
             pass 
         
         user = User(username, nombre, rol)

@@ -30,31 +30,58 @@ $$;
 
 -- 2. Asignar Permisos a los Roles Funcionales
 
+-- Resetear permisos
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA fruteria_db FROM rol_vendedor, rol_almacenista, rol_supervisor, rol_admin;
+REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA fruteria_db FROM rol_vendedor, rol_almacenista, rol_supervisor, rol_admin;
+
 -- Permisos Comunes (Uso de esquema y secuencias)
 GRANT USAGE ON SCHEMA fruteria_db TO rol_vendedor, rol_almacenista, rol_supervisor, rol_admin;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA fruteria_db TO rol_vendedor, rol_almacenista, rol_supervisor, rol_admin;
 
 -- Permisos VENDEDOR
--- Puede leer productos y clientes
-GRANT SELECT ON producto, cliente, p_fisica, p_moral TO rol_vendedor;
--- Puede registrar ventas
-GRANT INSERT, SELECT ON venta, detalle_venta TO rol_vendedor;
--- Puede registrar clientes
-GRANT INSERT, UPDATE ON cliente, p_fisica, p_moral TO rol_vendedor;
+-- producto: R
+GRANT SELECT ON producto TO rol_vendedor;
+-- venta: C, R
+GRANT INSERT, SELECT ON venta TO rol_vendedor;
+-- detalle_venta: C, R
+GRANT INSERT, SELECT ON detalle_venta TO rol_vendedor;
+-- cliente (y p_fisica/moral): C, R, U
+GRANT INSERT, SELECT, UPDATE ON cliente, p_fisica, p_moral TO rol_vendedor;
 
 -- Permisos ALMACENISTA
--- Puede leer y actualizar productos (stock)
+-- producto: R, U
 GRANT SELECT, UPDATE ON producto TO rol_almacenista;
--- Puede gestionar proveedores y compras
-GRANT ALL PRIVILEGES ON proveedor, compra, detalle_compra, producto_proveedor TO rol_almacenista;
+-- compra: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON compra TO rol_almacenista;
+-- detalle_compra: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON detalle_compra TO rol_almacenista;
+-- proveedor: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON proveedor TO rol_almacenista;
+-- producto_proveedor: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON producto_proveedor TO rol_almacenista;
 
 -- Permisos SUPERVISOR
--- Acceso amplio para supervisar, pero restringido en borrado crítico si se desea (aquí damos ALL a tablas operativas)
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA fruteria_db TO rol_supervisor;
--- REVOKE DELETE ON venta FROM rol_supervisor; -- Ejemplo si se quisiera restringir
+-- producto: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON producto TO rol_supervisor;
+-- venta: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON venta TO rol_supervisor;
+-- detalle_venta: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON detalle_venta TO rol_supervisor;
+-- cliente (y p_fisica/moral): C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON cliente, p_fisica, p_moral TO rol_supervisor;
+-- compra: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON compra TO rol_supervisor;
+-- detalle_compra: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON detalle_compra TO rol_supervisor;
+-- proveedor: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON proveedor TO rol_supervisor;
+-- producto_proveedor: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON producto_proveedor TO rol_supervisor;
+-- empleado: R
+GRANT SELECT ON empleado TO rol_supervisor;
 
 -- Permisos ADMIN
--- Dueño absoluto del esquema
+-- Total
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA fruteria_db TO rol_admin;
 
 
