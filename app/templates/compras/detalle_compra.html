@@ -1,0 +1,82 @@
+{% extends "layout_dashboard.html" %}
+
+{% block title %}Detalle de Compra #{{ compra.folio_c }} - Frutería{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <a href="{{ url_for('compras.reporte_compras') }}" class="text-decoration-none text-muted">
+            <i class="bi bi-arrow-left"></i> Volver al reporte
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">Productos Comprados</h5>
+                    <span class="badge bg-light text-dark">{{ detalles|length }} items</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Producto</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-center">Unidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for d in detalles %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold">{{ d.descripcion }}</div>
+                                    <small class="text-muted">#{{ d.codigo }}</small>
+                                </td>
+                                <td class="text-center">{{ d.cantidad }}</td>
+                                <td class="text-center">{{ d.unidad_medida }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0 fw-bold">Información de Compra</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase">Folio</label>
+                        <div class="fw-bold fs-5">#{{ compra.folio_c }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase">Fecha</label>
+                        <div class="fw-bold">{{ compra.fecha }}</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase">No. Lote</label>
+                        <div class="fw-bold">{{ compra.no_lote }}</div>
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase">Proveedor</label>
+                        <div class="fw-bold text-primary">
+                            <i class="bi bi-truck me-2"></i> {{ compra.proveedor }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted small text-uppercase">Registrado por</label>
+                        <div class="fw-bold">
+                            <i class="bi bi-person me-2"></i> {{ compra.empleado }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
