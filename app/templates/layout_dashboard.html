@@ -106,12 +106,11 @@
             <header class="top-header">
                 <div class="user-menu ms-auto">
 
-                    <div class="user-profile">
+                    <div class="d-flex align-items-center gap-2">
                         <div class="user-avatar">
                             {{ current_user.username[0] | upper }}
                         </div>
                         <span class="font-weight-bold small">{{ current_user.username }}</span>
-                        <i class="bi bi-chevron-down small text-muted ms-2"></i>
                     </div>
                 </div>
             </header>

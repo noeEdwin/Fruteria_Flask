@@ -20,6 +20,7 @@ def add_empleado():
             'turno': request.form['turno'],
             'salario': request.form['salario'],
             'username': request.form['username'],
+            'password': request.form['password'],
             'rol': request.form['rol']
         }
         Empleado.create(data)
