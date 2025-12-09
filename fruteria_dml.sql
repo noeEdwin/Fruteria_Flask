@@ -105,28 +105,28 @@ INSERT INTO p_fisica (id_c, nombre) VALUES
 
 -- 7. Insertar Empleados (ADAPTADO: Se agregaron columnas username, is_active, is_staff, is_superuser)
 -- Nota: Se generan usernames basados en el nombre. Password se deja NULL o genérico si se requiere.
-INSERT INTO empleado (id_e, nombre, turno, salario, username, is_active, is_staff, is_superuser) VALUES 
-(7000,'ricardo valencia','matutino',5500, 'rvalencia', true, false, false), 
-(7001,'juan gonzález','matutino',5200, 'jgonzalez', true, false, false), 
-(7002,'susana lara','matutino',3500, 'slara', true, false, false), 
-(7003,'maria fernández','vespertino',5500, 'mfernandez', true, false, false), 
-(7004,'andrés rubio','vespertino',4300, 'arubio', true, false, false), 
-(7005,'rosalba zárate','vespertino',3800, 'rzarate', true, false, false),
-(7006,'bryan smith','matutino',4800, 'bsmith', true, false, false), 
-(7007,'will blades','matutino',5100, 'wblades', true, false, false), 
-(7008,'cinthya house','matutino',3700, 'chouse', true, false, false),
-(7009,'robert de niro','vespertino',5230, 'rdeniro', true, true, false), -- Supervisor
-(7010,'william trace','vespertino',3770, 'wtrace', true, false, false), 
-(7011,'marie wonk','vespertino',3580, 'mwonk', true, false, false),
-(7012,'susan right','matutino',3200, 'sright', true, false, false), 
-(7013,'fabricio cortés','matutino',4800, 'fcortes', true, false, false), 
-(7014,'randy wells','matutino',4600, 'rwells', true, false, false),
-(7015,'maya frost','vespertino',5500, 'mfrost', true, false, false), 
-(7016,'ramses white','vespertino',5150, 'rwhite', true, false, false), 
-(7017,'rose felp','vespertino',4300, 'rfelp', true, false, false),
-(7018,'raúl peniche','matutino',4500, 'rpeniche', true, false, false), 
-(7019,'magie swift','matutino',3850, 'mswift', true, false, false), 
-(7020,'manuel gómez','matutino',4200, 'mgomez', true, true, false); -- Supervisor
+INSERT INTO empleado (id_e, nombre, turno, salario, username, rol, is_active) VALUES 
+(7000,'ricardo valencia','matutino',5500, 'rvalencia', 'vendedor', true), 
+(7001,'juan gonzález','matutino',5200, 'jgonzalez', 'vendedor', true), 
+(7002,'susana lara','matutino',3500, 'slara', 'almacenista', true), 
+(7003,'maria fernández','vespertino',5500, 'mfernandez', 'vendedor', true), 
+(7004,'andrés rubio','vespertino',4300, 'arubio', 'vendedor', true), 
+(7005,'rosalba zárate','vespertino',3800, 'rzarate', 'almacenista', true),
+(7006,'bryan smith','matutino',4800, 'bsmith', 'vendedor', true), 
+(7007,'will blades','matutino',5100, 'wblades', 'vendedor', true), 
+(7008,'cinthya house','matutino',3700, 'chouse', 'vendedor', true),
+(7009,'robert de niro','vespertino',5230, 'rdeniro', 'supervisor', true), 
+(7010,'william trace','vespertino',3770, 'wtrace', 'vendedor', true), 
+(7011,'marie wonk','vespertino',3580, 'mwonk', 'vendedor', true),
+(7012,'susan right','matutino',3200, 'sright', 'vendedor', true), 
+(7013,'fabricio cortés','matutino',4800, 'fcortes', 'vendedor', true), 
+(7014,'randy wells','matutino',4600, 'rwells', 'vendedor', true),
+(7015,'maya frost','vespertino',5500, 'mfrost', 'vendedor', true), 
+(7016,'ramses white','vespertino',5150, 'rwhite', 'vendedor', true), 
+(7017,'rose felp','vespertino',4300, 'rfelp', 'vendedor', true),
+(7018,'raúl peniche','matutino',4500, 'rpeniche', 'vendedor', true), 
+(7019,'magie swift','matutino',3850, 'mswift', 'vendedor', true), 
+(7020,'manuel gómez','matutino',4200, 'mgomez', 'supervisor', true); 
 
 -- 8. Insertar Supervisores
 INSERT INTO supervisor (id_e, id_s) VALUES 
@@ -214,3 +214,61 @@ INSERT INTO detalle_compra (folio_c, codigo, cantidad) VALUES
 (8020, 5009,20),(8020,5010,15),(8020,5014,18),
 (8021, 5000,10),(8020,5002,10),(8021,5006,28),
 (8022, 5015,15),(8022,5016,10),(8022,5017,20);
+-- Script para sincronizar roles de PostgreSQL con la tabla empleado
+-- Se puede ejecutar independientemente o como parte del DML
+
+SET search_path TO fruteria_db;
+
+-- 1. Asegurar que existe el rol de grupo base
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'fruteria_admin_role') THEN
+        CREATE ROLE fruteria_admin_role WITH
+          NOLOGIN
+          NOSUPERUSER
+          INHERIT
+          NOCREATEDB
+          NOCREATEROLE
+          NOREPLICATION
+          NOBYPASSRLS;
+        
+        GRANT USAGE ON SCHEMA fruteria_db TO fruteria_admin_role;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA fruteria_db TO fruteria_admin_role;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA fruteria_db TO fruteria_admin_role;
+        ALTER DEFAULT PRIVILEGES IN SCHEMA fruteria_db GRANT ALL ON TABLES TO fruteria_admin_role;
+        ALTER DEFAULT PRIVILEGES IN SCHEMA fruteria_db GRANT ALL ON SEQUENCES TO fruteria_admin_role;
+    END IF;
+END
+$$;
+
+-- 2. Función auxiliar (temporal o persistente) para crear usuarios
+CREATE OR REPLACE FUNCTION gestion_usuario_auto(p_username text, p_password text)
+RETURNS void AS $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = p_username) THEN
+        EXECUTE format('CREATE USER %I WITH PASSWORD %L LOGIN IN ROLE fruteria_admin_role', p_username, p_password);
+    ELSE
+        -- Si existe, solo aseguramos el password y el grupo
+        EXECUTE format('ALTER USER %I WITH PASSWORD %L', p_username, p_password);
+        EXECUTE format('GRANT fruteria_admin_role TO %I', p_username);
+    END IF;
+    
+    -- Dar permiso a postgres para impersonar (SET ROLE)
+    EXECUTE format('GRANT %I TO postgres', p_username);
+END;
+$$ LANGUAGE plpgsql;
+
+-- 3. Iterar sobre la tabla empleado y crear los roles
+DO $$
+DECLARE
+    emp RECORD;
+BEGIN
+    FOR emp IN SELECT username FROM empleado WHERE username IS NOT NULL LOOP
+        -- Usamos '123' como password por defecto para todos en este entorno de desarrollo
+        PERFORM gestion_usuario_auto(emp.username, '123');
+    END LOOP;
+END
+$$;
+
+-- Limpieza
+DROP FUNCTION gestion_usuario_auto(text, text);
