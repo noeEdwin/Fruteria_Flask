@@ -6,23 +6,6 @@ from app.models.venta import create_sale, get_sales_report
 
 ventas_bp = Blueprint('ventas', __name__)
 
-@ventas_bp.context_processor
-def utility_processor():
-    from flask import current_app, url_for
-    import os
-    def get_product_image(codigo):
-        """Busca la imagen del producto con varias extensiones."""
-        base_path = os.path.join(current_app.root_path, 'static', 'img', 'productos')
-        extensions = ['.jpg', '.jpeg', '.png', '.webp']
-        
-        for ext in extensions:
-            filename = f"{codigo}{ext}"
-            if os.path.exists(os.path.join(base_path, filename)):
-                return url_for('static', filename=f'img/productos/{filename}')
-        
-        return None
-    return dict(get_product_image=get_product_image)
-
 @ventas_bp.route("/ventas/nueva")
 @login_required
 def nueva_venta():

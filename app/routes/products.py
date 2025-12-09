@@ -1,26 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required
 from app.models.product import get_all_products, add_product, update_product, delete_product, get_product_by_code, check_product_in_use, get_dashboard_stats, get_low_stock_products
-import os
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 
 products_bp = Blueprint('products', __name__)
-
-@products_bp.context_processor
-def utility_processor():
-    def get_product_image(codigo):
-        """Busca la imagen del producto con varias extensiones."""
-        base_path = os.path.join(current_app.root_path, 'static', 'img', 'productos')
-        extensions = ['.jpg', '.jpeg', '.png', '.webp']
-        
-        for ext in extensions:
-            filename = f"{codigo}{ext}"
-            if os.path.exists(os.path.join(base_path, filename)):
-                return url_for('static', filename=f'img/productos/{filename}')
-        
-        # Imagen por defecto si no existe ninguna
-        return None
-    return dict(get_product_image=get_product_image)
 
 @products_bp.route("/")
 @products_bp.route("/home")

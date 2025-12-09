@@ -36,47 +36,29 @@ class Empleado:
             return None
 
     @staticmethod
-    def get_next_id():
-        with get_cursor() as cur:
-            cur.execute("SELECT MAX(id_e) as max_id FROM empleado")
-            row = cur.fetchone()
-            if row and row['max_id']:
-                return row['max_id'] + 1
-            return 1
-
-    @staticmethod
     def create(data):
         with get_cursor() as cur:
-            # 1. Crear usuario en Postgres
-            # Necesitamos permisos de superuser (postgres)
-            cur.execute("RESET ROLE")
-            
-            # Generar ID automático
-            id_e = Empleado.get_next_id()
-            
+            # 1. Crear el usuario en Postgres (Necesitamos ser superuser/owner para esto)
             username = data['username']
             password = data['password']
             rol = data['rol']
-            
-            # Crear usuario con contraseña
-            cur.execute(f'CREATE USER "{username}" WITH PASSWORD \'{password}\'')
-            
-            # Asignar rol (grupo)
-            # Mapeo de roles de UI a BD
-            db_role = f"rol_{rol}"
-            cur.execute(f'GRANT "{db_role}" TO "{username}"')
-            
+
+            cur.execute("RESET ROLE")
+
+            # Crear usuario con contraseña y asignarlo al grupo (rol) 
+            cur.execute(f'CREATE USER "{username}" WITH PASSWORD \'{password}\' IN ROLE "{rol}"')
+
             # 2. Insertar en la tabla empleado
             cur.execute("""
                 INSERT INTO empleado (id_e, nombre, turno, salario, username, rol, is_active)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
             """, (
-                id_e,
+                data['id_e'],
                 data['nombre'],
                 data['turno'],
                 data['salario'],
-                data['username'],
-                data['rol'],
+                username,
+                rol,
                 True
             ))
 
@@ -108,14 +90,9 @@ class Empleado:
                 # 4. Actualizar Rol si cambió
                 if old_rol != new_rol:
                     # REVOKE viejo, GRANT nuevo
-                    # Usamos el username (posiblemente nuevo)
                     target_user = new_username
-                    # Mapeo de roles de UI A BD
-                    old_db_role = f"rol_{old_rol}"
-                    new_db_role = f"rol_{new_rol}"
-                    
-                    cur.execute(f'REVOKE "{old_db_role}" FROM "{target_user}"')
-                    cur.execute(f'GRANT "{new_db_role}" TO "{target_user}"')
+                    cur.execute(f'REVOKE "{old_rol}" FROM "{target_user}"')
+                    cur.execute(f'GRANT "{new_rol}" TO "{target_user}"')
 
             # 5. Actualizar la tabla
             cur.execute("""
@@ -134,18 +111,14 @@ class Empleado:
     @staticmethod
     def delete(id_e):
         with get_cursor() as cur:
-            # 1. Obtener username para borrar el rol de postgres
+            # 1. Obtener username antes de borrar
             cur.execute("SELECT username FROM empleado WHERE id_e = %s", (id_e,))
             row = cur.fetchone()
-            
             if row:
                 username = row['username']
                 
-                # 2. Borrar usuario de Postgres
-                # Necesitamos permisos de superuser
+                # 2. Borrar rol de Postgres
                 cur.execute("RESET ROLE")
-                
-                # DROP ROLE IF EXISTS (mas seguro)
                 cur.execute(f'DROP ROLE IF EXISTS "{username}"')
 
             # 3. Borrar de la tabla

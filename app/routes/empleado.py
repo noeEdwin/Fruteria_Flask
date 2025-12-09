@@ -15,6 +15,7 @@ def list_empleados():
 def add_empleado():
     try:
         data = {
+            'id_e': request.form['id_e'],
             'nombre': request.form['nombre'],
             'turno': request.form['turno'],
             'salario': request.form['salario'],

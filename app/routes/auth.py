@@ -22,6 +22,13 @@ def login():
             login_user(user)
             
             flash(f"Bienvenido, {user.username}", "success")
+            
+            # Redirección basada en rol
+            if user.rol == 'vendedor':
+                return redirect(url_for('ventas.nueva_venta'))
+            elif user.rol == 'almacenista':
+                return redirect(url_for('products.productos'))
+            
             return redirect(url_for("auth.dashboard"))
             
         except psycopg2.OperationalError:
@@ -46,8 +53,11 @@ import datetime
 @auth_bp.route("/dashboard")
 @login_required
 def dashboard():
+    # Redireccionar si no tiene permisos para ver el dashboard
     if current_user.rol == 'vendedor':
         return redirect(url_for('ventas.nueva_venta'))
+    elif current_user.rol == 'almacenista':
+        return redirect(url_for('products.productos'))
         
     stats = get_dashboard_stats()
     low_stock = get_low_stock_products()
