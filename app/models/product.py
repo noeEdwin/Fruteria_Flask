@@ -128,10 +128,21 @@ def get_top_categories(limit=5):
     """
     with get_cursor() as cur:
         sql = """
-        SELECT p.categoria, SUM(dv.cantidad) as total_vendido
+        SELECT 
+            CASE 
+                WHEN p.categoria ILIKE '%%fruta%%' THEN 'Frutas'
+                WHEN p.categoria ILIKE '%%verdura%%' THEN 'Verduras'
+                ELSE INITCAP(p.categoria)
+            END as categoria,
+            SUM(dv.cantidad) as total_vendido
         FROM detalle_venta dv
         JOIN producto p ON dv.codigo = p.codigo
-        GROUP BY p.categoria
+        GROUP BY 
+            CASE 
+                WHEN p.categoria ILIKE '%%fruta%%' THEN 'Frutas'
+                WHEN p.categoria ILIKE '%%verdura%%' THEN 'Verduras'
+                ELSE INITCAP(p.categoria)
+            END
         ORDER BY total_vendido DESC
         LIMIT %s
         """
