@@ -41,4 +41,21 @@ def create_app():
     from app.routes.empleado import empleado_bp
     app.register_blueprint(empleado_bp)
 
+    import os
+    @app.template_filter('product_image')
+    def product_image_filter(codigo):
+        """
+        Busca la imagen del producto en static/img/productos con varias extensiones.
+        Retorna el nombre del archivo si existe, sino None.
+        """
+        static_folder = os.path.join(app.root_path, 'static', 'img', 'productos')
+        extensions = ['png', 'jpg', 'jpeg', 'webp']
+        
+        for ext in extensions:
+            filename = f"{codigo}.{ext}"
+            if os.path.exists(os.path.join(static_folder, filename)):
+                return f"img/productos/{filename}"
+        
+        return None
+
     return app

@@ -40,8 +40,13 @@
                     <tr>
                         <td class="ps-4">
                             <div class="d-flex align-items-center">
-                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-size: 1.2rem;">
-                                    {% if p.categoria == 'fruta' %}🍎{% elif p.categoria == 'verdura' %}🥦{% else %}📦{% endif %}
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 overflow-hidden" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                                    {% set img_path = p.codigo | product_image %}
+                                    {% if img_path %}
+                                        <img src="{{ url_for('static', filename=img_path) }}" alt="{{ p.descripcion }}" class="w-100 h-100 object-fit-cover">
+                                    {% else %}
+                                        {% if 'fruta' in p.categoria|lower %}🍎{% elif 'verdura' in p.categoria|lower %}🥦{% else %}📦{% endif %}
+                                    {% endif %}
                                 </div>
                                 <div>
                                     <div class="fw-bold text-dark">{{ p.descripcion }}</div>
@@ -50,7 +55,7 @@
                             </div>
                         </td>
                         <td>
-                            <span class="category-pill py-1 px-3 small {% if p.categoria == 'fruta' %}bg-warning-subtle text-warning-emphasis{% else %}bg-success-subtle text-success-emphasis{% endif %}">
+                            <span class="category-pill py-1 px-3 small {% if 'fruta' in p.categoria|lower %}bg-warning-subtle text-warning-emphasis{% else %}bg-success-subtle text-success-emphasis{% endif %}">
                                 {{ p.categoria|capitalize }}
                             </span>
                         </td>

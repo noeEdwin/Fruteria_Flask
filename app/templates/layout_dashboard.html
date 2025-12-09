@@ -26,12 +26,15 @@
             
             <ul class="sidebar-nav p-0">
                 <!-- Inicio -->
+                <!-- Inicio -->
+                {% if not current_user.rol in ['almacenista', 'vendedor'] %}
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint == 'auth.dashboard' %}active{% endif %}" href="{{ url_for('auth.dashboard') }}">
                         <i class="bi bi-grid-1x2"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
+                {% endif %}
 
                 <!-- Vendedores, Supervisores y Admins -->
                 {% if current_user.es_vendedor and not current_user.rol == 'almacenista' %}
@@ -106,12 +109,12 @@
             <header class="top-header">
                 <div class="user-menu ms-auto">
 
-                    <div class="user-profile">
-                        <div class="user-avatar">
+                    <div class="d-flex align-items-center gap-3 bg-white py-1 px-3 rounded-pill shadow-sm">
+                        <div class="user-avatar bg-light text-success fw-bold d-flex align-items-center justify-content-center rounded-circle" style="width: 35px; height: 35px;">
                             {{ current_user.username[0] | upper }}
                         </div>
-                        <span class="font-weight-bold small">{{ current_user.username }}</span>
-                        <i class="bi bi-chevron-down small text-muted ms-2"></i>
+                        <span class="fw-medium text-dark">{{ current_user.username }}</span>
+                        <!-- <i class="bi bi-chevron-down small text-muted ms-2"></i> -->
                     </div>
                 </div>
             </header>

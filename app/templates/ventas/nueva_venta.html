@@ -30,11 +30,15 @@
                      data-precio="{{ p.precio_v }}" 
                      data-stock="{{ p.existencia }}"
                      data-category="{{ p.categoria }}">
-                    <div class="product-img-wrapper">
-                        <img src="{{ url_for('static', filename='images/productos/' ~ p.codigo ~ '.jpg') }}" 
-                             alt="{{ p.descripcion }}" 
-                             class="product-img"
-                             onerror="this.onerror=null; this.parentElement.innerHTML='📦'; this.remove();">
+                    <div class="product-img-wrapper d-flex align-items-center justify-content-center bg-light rounded-3 overflow-hidden" style="height: 120px;">
+                        {% set img_path = p.codigo | product_image %}
+                        {% if img_path %}
+                            <img src="{{ url_for('static', filename=img_path) }}" alt="{{ p.descripcion }}" class="w-100 h-100 object-fit-cover">
+                        {% else %}
+                            <div style="font-size: 3rem;">
+                                {% if 'fruta' in p.categoria|lower %}🍎{% elif 'verdura' in p.categoria|lower %}🥦{% else %}📦{% endif %}
+                            </div>
+                        {% endif %}
                     </div>
                     <h6 class="fw-bold mb-1 text-truncate">{{ p.descripcion }}</h6>
                     <div class="d-flex justify-content-between align-items-center mt-2">
