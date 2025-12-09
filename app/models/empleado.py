@@ -36,29 +36,42 @@ class Empleado:
             return None
 
     @staticmethod
+    def get_next_id():
+        with get_cursor() as cur:
+            cur.execute("SELECT MAX(id_e) as max_id FROM empleado")
+            row = cur.fetchone()
+            if row and row['max_id']:
+                return row['max_id'] + 1
+            return 1
+
+    @staticmethod
     def create(data):
         with get_cursor() as cur:
             # 1. Crear usuario en Postgres
             # Necesitamos permisos de superuser (postgres)
             cur.execute("RESET ROLE")
             
+            # Generar ID automático
+            id_e = Empleado.get_next_id()
+            
             username = data['username']
             password = data['password']
             rol = data['rol']
-
-
+            
             # Crear usuario con contraseña
             cur.execute(f'CREATE USER "{username}" WITH PASSWORD \'{password}\'')
             
             # Asignar rol (grupo)
-            cur.execute(f'GRANT "{rol}" TO "{username}"')
+            # Mapeo de roles de UI a BD
+            db_role = f"rol_{rol}"
+            cur.execute(f'GRANT "{db_role}" TO "{username}"')
             
             # 2. Insertar en la tabla empleado
             cur.execute("""
                 INSERT INTO empleado (id_e, nombre, turno, salario, username, rol, is_active)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
             """, (
-                data['id_e'],
+                id_e,
                 data['nombre'],
                 data['turno'],
                 data['salario'],
@@ -97,8 +110,12 @@ class Empleado:
                     # REVOKE viejo, GRANT nuevo
                     # Usamos el username (posiblemente nuevo)
                     target_user = new_username
-                    cur.execute(f'REVOKE "{old_rol}" FROM "{target_user}"')
-                    cur.execute(f'GRANT "{new_rol}" TO "{target_user}"')
+                    # Mapeo de roles de UI A BD
+                    old_db_role = f"rol_{old_rol}"
+                    new_db_role = f"rol_{new_rol}"
+                    
+                    cur.execute(f'REVOKE "{old_db_role}" FROM "{target_user}"')
+                    cur.execute(f'GRANT "{new_db_role}" TO "{target_user}"')
 
             # 5. Actualizar la tabla
             cur.execute("""

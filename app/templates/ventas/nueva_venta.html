@@ -31,10 +31,16 @@
                      data-stock="{{ p.existencia }}"
                      data-category="{{ p.categoria }}">
                     <div class="product-img-wrapper">
-                        <img src="{{ url_for('static', filename='images/productos/' ~ p.codigo ~ '.jpg') }}" 
-                             alt="{{ p.descripcion }}" 
-                             class="product-img"
-                             onerror="this.onerror=null; this.parentElement.innerHTML='📦'; this.remove();">
+                        {% set img_url = get_product_image(p.codigo) %}
+                        {% if img_url %}
+                            <img src="{{ img_url }}" 
+                                 alt="{{ p.descripcion }}" 
+                                 class="product-img">
+                        {% else %}
+                            <span style="font-size: 3rem;">
+                                {% if p.categoria == 'fruta' %}🍎{% elif p.categoria == 'verdura' %}🥦{% else %}📦{% endif %}
+                            </span>
+                        {% endif %}
                     </div>
                     <h6 class="fw-bold mb-1 text-truncate">{{ p.descripcion }}</h6>
                     <div class="d-flex justify-content-between align-items-center mt-2">

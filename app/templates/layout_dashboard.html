@@ -26,12 +26,15 @@
             
             <ul class="sidebar-nav p-0">
                 <!-- Inicio -->
+                <!-- Inicio -->
+                {% if current_user.rol != 'vendedor' %}
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint == 'auth.dashboard' %}active{% endif %}" href="{{ url_for('auth.dashboard') }}">
                         <i class="bi bi-grid-1x2"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
+                {% endif %}
 
                 <!-- Vendedores, Supervisores y Admins -->
                 {% if current_user.es_vendedor and not current_user.rol == 'almacenista' %}
