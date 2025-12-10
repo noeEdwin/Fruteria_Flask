@@ -1,4 +1,5 @@
 from config.db import get_cursor
+import psycopg2
 
 
 def get_product_by_code(codigo):

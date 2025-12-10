@@ -80,7 +80,7 @@ BEGIN
     WHERE codigo = NEW.codigo;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 DROP TRIGGER IF EXISTS tg_actualizar_stock_venta ON detalle_venta;
 CREATE TRIGGER tg_actualizar_stock_venta
@@ -98,7 +98,7 @@ BEGIN
     WHERE codigo = NEW.codigo;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 DROP TRIGGER IF EXISTS tg_actualizar_stock_compra ON detalle_compra;
 CREATE TRIGGER tg_actualizar_stock_compra

@@ -50,7 +50,7 @@ GRANT INSERT, SELECT, UPDATE ON cliente, p_fisica, p_moral TO rol_vendedor;
 
 -- Permisos ALMACENISTA
 -- producto: R, U
-GRANT SELECT, UPDATE ON producto TO rol_almacenista;
+GRANT INSERT, SELECT, UPDATE ON producto TO rol_almacenista;
 -- compra: C, R, U, D
 GRANT INSERT, SELECT, UPDATE, DELETE ON compra TO rol_almacenista;
 -- detalle_compra: C, R, U, D

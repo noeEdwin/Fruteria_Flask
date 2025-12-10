@@ -290,6 +290,7 @@ INSERT INTO p_fisica (id_c, nombre) VALUES
 
 INSERT INTO empleado (id_e, nombre, turno, salario, username, rol, is_active) VALUES
 (7000, 'Edwin Noe', 'matutino', 15000, 'edwin', 'administrador', true),
+(1, 'System Administrator', 'Completo', 0.00, 'admin', 'administrador', true),
 (7001, 'Carlos Castro', 'matutino', 5000, 'ccastro', 'almacenista', true),
 (7002, 'Elizabeth Guzman', 'matutino', 5000, 'eguzman', 'almacenista', true),
 (7003, 'David Reyes', 'matutino', 5000, 'dreyes', 'almacenista', true),
