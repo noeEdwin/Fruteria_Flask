@@ -1,3 +1,4 @@
+DROP SCHEMA IF EXISTS fruteria_db CASCADE;
 CREATE SCHEMA IF NOT EXISTS fruteria_db AUTHORIZATION postgres;
 
 SET search_path TO fruteria_db;
