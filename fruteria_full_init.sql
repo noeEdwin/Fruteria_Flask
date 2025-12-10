@@ -93,7 +93,281 @@ CREATE TABLE detalle_compra(
     folio_c integer references compra (folio_c),
     codigo integer REFERENCES producto(codigo),
     cantidad integer 
-);-- Script DML Generado Automáticamente con Datos Realistas
+);-- Script para crear jerarquía de roles y usuarios en PostgreSQL
+
+SET search_path TO fruteria_db;
+
+-- 1. Definir Roles Funcionales (NOLOGIN)
+-- Función auxiliar para crear roles si no existen
+DO $$
+BEGIN
+    -- Rol Vendedor
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'rol_vendedor') THEN
+        CREATE ROLE rol_vendedor WITH NOLOGIN NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;
+    END IF;
+    
+    -- Rol Almacenista
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'rol_almacenista') THEN
+        CREATE ROLE rol_almacenista WITH NOLOGIN NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;
+    END IF;
+    
+    -- Rol Supervisor
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'rol_supervisor') THEN
+        CREATE ROLE rol_supervisor WITH NOLOGIN NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;
+    END IF;
+    
+    -- Rol Admin (Dueño)
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'rol_admin') THEN
+        CREATE ROLE rol_admin WITH NOLOGIN NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;
+    END IF;
+END
+$$;
+
+-- 2. Asignar Permisos a los Roles Funcionales
+
+-- Resetear permisos
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA fruteria_db FROM rol_vendedor, rol_almacenista, rol_supervisor, rol_admin;
+REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA fruteria_db FROM rol_vendedor, rol_almacenista, rol_supervisor, rol_admin;
+
+-- Permisos Comunes (Uso de esquema y secuencias)
+GRANT USAGE ON SCHEMA fruteria_db TO rol_vendedor, rol_almacenista, rol_supervisor, rol_admin;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA fruteria_db TO rol_vendedor, rol_almacenista, rol_supervisor, rol_admin;
+
+-- Permisos VENDEDOR
+-- producto: R
+GRANT SELECT ON producto TO rol_vendedor;
+-- venta: C, R
+GRANT INSERT, SELECT ON venta TO rol_vendedor;
+-- detalle_venta: C, R
+GRANT INSERT, SELECT ON detalle_venta TO rol_vendedor;
+-- cliente (y p_fisica/moral): C, R, U
+GRANT INSERT, SELECT, UPDATE ON cliente, p_fisica, p_moral TO rol_vendedor;
+
+-- Permisos ALMACENISTA
+-- producto: R, U
+GRANT INSERT, SELECT, UPDATE ON producto TO rol_almacenista;
+-- compra: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON compra TO rol_almacenista;
+-- detalle_compra: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON detalle_compra TO rol_almacenista;
+-- proveedor: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON proveedor TO rol_almacenista;
+-- producto_proveedor: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON producto_proveedor TO rol_almacenista;
+
+-- Permisos SUPERVISOR
+-- producto: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON producto TO rol_supervisor;
+-- venta: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON venta TO rol_supervisor;
+-- detalle_venta: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON detalle_venta TO rol_supervisor;
+-- cliente (y p_fisica/moral): C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON cliente, p_fisica, p_moral TO rol_supervisor;
+-- compra: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON compra TO rol_supervisor;
+-- detalle_compra: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON detalle_compra TO rol_supervisor;
+-- proveedor: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON proveedor TO rol_supervisor;
+-- producto_proveedor: C, R, U, D
+GRANT INSERT, SELECT, UPDATE, DELETE ON producto_proveedor TO rol_supervisor;
+-- empleado: R
+GRANT SELECT ON empleado TO rol_supervisor;
+
+-- Permisos ADMIN
+-- Total
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA fruteria_db TO rol_admin;
+
+
+-- 3. Crear Usuarios y Asignar Roles (Herencia)
+
+CREATE OR REPLACE FUNCTION gestionar_usuario_jerarquico(nombre_usuario text, password_usuario text, rol_asignar text)
+RETURNS void AS $$
+BEGIN
+    -- Crear usuario si no existe
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = nombre_usuario) THEN
+        EXECUTE format('CREATE USER %I WITH PASSWORD %L LOGIN', nombre_usuario, password_usuario);
+    ELSE
+        EXECUTE format('ALTER USER %I WITH PASSWORD %L', nombre_usuario, password_usuario);
+    END IF;
+
+    -- Asignar el rol funcional correspondiente
+    -- Primero removemos membresías anteriores para evitar mezclas
+    EXECUTE format('REVOKE rol_vendedor, rol_almacenista, rol_supervisor, rol_admin FROM %I', nombre_usuario);
+    
+    -- Asignamos el nuevo rol
+    EXECUTE format('GRANT %I TO %I', rol_asignar, nombre_usuario);
+    
+    -- Permitir que postgres haga SET ROLE
+    EXECUTE format('GRANT %I TO postgres', nombre_usuario);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Asignación de Roles a Usuarios Específicos
+SELECT gestionar_usuario_jerarquico('admin', '123', 'rol_admin');
+SELECT gestionar_usuario_jerarquico('edwin', '123', 'rol_admin');
+
+SELECT gestionar_usuario_jerarquico('marial', '123', 'rol_supervisor');
+
+SELECT gestionar_usuario_jerarquico('juanp', '123', 'rol_vendedor');
+SELECT gestionar_usuario_jerarquico('carlosr', '123', 'rol_vendedor');
+
+SELECT gestionar_usuario_jerarquico('pedroa', '123', 'rol_almacenista');
+
+-- Limpieza
+DROP FUNCTION gestionar_usuario_jerarquico(text, text, text);
+-- Script de Funciones y Triggers para Frutería
+
+SET search_path TO fruteria_db;
+
+-- ==========================================
+-- 1. FUNCIONES ALMACENADAS 
+-- ==========================================
+
+-- Función 1: Calcular el total de una venta
+CREATE OR REPLACE FUNCTION fn_calcular_total_venta(p_folio_v INTEGER)
+RETURNS NUMERIC AS $$
+DECLARE
+    total NUMERIC(10,2);
+BEGIN
+    SELECT COALESCE(SUM(dv.cantidad * p.precio_v), 0)
+    INTO total
+    FROM detalle_venta dv
+    JOIN producto p ON dv.codigo = p.codigo
+    WHERE dv.folio_v = p_folio_v;
+    
+    RETURN total;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función 2: Consultar stock disponible de un producto
+CREATE OR REPLACE FUNCTION fn_stock_disponible(p_codigo INTEGER)
+RETURNS INTEGER AS $$
+DECLARE
+    stock_actual INTEGER;
+BEGIN
+    SELECT existencia INTO stock_actual
+    FROM producto
+    WHERE codigo = p_codigo;
+    
+    RETURN COALESCE(stock_actual, 0);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función 3: Calcular ventas totales por empleado en un rango de fechas
+CREATE OR REPLACE FUNCTION fn_ventas_por_empleado(p_id_e INTEGER, p_fecha_inicio DATE, p_fecha_fin DATE)
+RETURNS NUMERIC AS $$
+DECLARE
+    total_vendido NUMERIC(14,2);
+BEGIN
+    SELECT COALESCE(SUM(fn_calcular_total_venta(v.folio_v)), 0)
+    INTO total_vendido
+    FROM venta v
+    WHERE v.id_e = p_id_e
+    AND v.fecha BETWEEN p_fecha_inicio AND p_fecha_fin;
+    
+    RETURN total_vendido;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función 4: Calcular valor total del inventario (Costo)
+CREATE OR REPLACE FUNCTION fn_valor_inventario_total()
+RETURNS NUMERIC AS $$
+DECLARE
+    valor_total NUMERIC(14,2);
+BEGIN
+    SELECT COALESCE(SUM(existencia * precio_c), 0)
+    INTO valor_total
+    FROM producto;
+    
+    RETURN valor_total;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- ==========================================
+-- 2. DISPARADORES (TRIGGERS)
+-- ==========================================
+
+-- Trigger 1: Actualizar stock al realizar una venta (Resta)
+CREATE OR REPLACE FUNCTION tf_actualizar_stock_venta()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE producto
+    SET existencia = existencia - NEW.cantidad
+    WHERE codigo = NEW.codigo;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS tg_actualizar_stock_venta ON detalle_venta;
+CREATE TRIGGER tg_actualizar_stock_venta
+AFTER INSERT ON detalle_venta
+FOR EACH ROW
+EXECUTE FUNCTION tf_actualizar_stock_venta();
+
+
+-- Trigger 2: Actualizar stock al realizar una compra (Suma)
+CREATE OR REPLACE FUNCTION tf_actualizar_stock_compra()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE producto
+    SET existencia = existencia + NEW.cantidad
+    WHERE codigo = NEW.codigo;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS tg_actualizar_stock_compra ON detalle_compra;
+CREATE TRIGGER tg_actualizar_stock_compra
+AFTER INSERT ON detalle_compra
+FOR EACH ROW
+EXECUTE FUNCTION tf_actualizar_stock_compra();
+
+
+-- Trigger 3: Verificar stock suficiente antes de vender
+CREATE OR REPLACE FUNCTION tf_verificar_stock_suficiente()
+RETURNS TRIGGER AS $$
+DECLARE
+    stock_actual INTEGER;
+BEGIN
+    SELECT existencia INTO stock_actual
+    FROM producto
+    WHERE codigo = NEW.codigo;
+    
+    IF stock_actual < NEW.cantidad THEN
+        RAISE EXCEPTION 'Stock insuficiente para el producto %. Disponible: %, Solicitado: %', NEW.codigo, stock_actual, NEW.cantidad;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS tg_verificar_stock_suficiente ON detalle_venta;
+CREATE TRIGGER tg_verificar_stock_suficiente
+BEFORE INSERT ON detalle_venta
+FOR EACH ROW
+EXECUTE FUNCTION tf_verificar_stock_suficiente();
+
+
+-- Trigger 4: Validar que el precio de venta sea mayor al precio de compra
+CREATE OR REPLACE FUNCTION tf_validar_precios_producto()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.precio_v <= NEW.precio_c THEN
+        RAISE EXCEPTION 'El precio de venta (%) debe ser mayor al precio de compra (%)', NEW.precio_v, NEW.precio_c;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS tg_validar_precios_producto ON producto;
+CREATE TRIGGER tg_validar_precios_producto
+BEFORE INSERT OR UPDATE ON producto
+FOR EACH ROW
+EXECUTE FUNCTION tf_validar_precios_producto();
+-- Script DML Generado Automáticamente con Datos Realistas
 SET search_path TO fruteria_db;
 TRUNCATE TABLE detalle_compra, compra, detalle_venta, venta, supervisor, empleado, p_fisica, p_moral, cliente, producto_proveedor, proveedor, producto CASCADE;
 INSERT INTO producto (codigo, descripcion, categoria, unidad_medida, existencia, precio_c, precio_v) VALUES
@@ -890,280 +1164,6 @@ $$;
 
 DROP FUNCTION gestion_usuario_auto(text, text, text);
 
--- Script de Funciones y Triggers para Frutería
-
-SET search_path TO fruteria_db;
-
--- ==========================================
--- 1. FUNCIONES ALMACENADAS 
--- ==========================================
-
--- Función 1: Calcular el total de una venta
-CREATE OR REPLACE FUNCTION fn_calcular_total_venta(p_folio_v INTEGER)
-RETURNS NUMERIC AS $$
-DECLARE
-    total NUMERIC(10,2);
-BEGIN
-    SELECT COALESCE(SUM(dv.cantidad * p.precio_v), 0)
-    INTO total
-    FROM detalle_venta dv
-    JOIN producto p ON dv.codigo = p.codigo
-    WHERE dv.folio_v = p_folio_v;
-    
-    RETURN total;
-END;
-$$ LANGUAGE plpgsql;
-
--- Función 2: Consultar stock disponible de un producto
-CREATE OR REPLACE FUNCTION fn_stock_disponible(p_codigo INTEGER)
-RETURNS INTEGER AS $$
-DECLARE
-    stock_actual INTEGER;
-BEGIN
-    SELECT existencia INTO stock_actual
-    FROM producto
-    WHERE codigo = p_codigo;
-    
-    RETURN COALESCE(stock_actual, 0);
-END;
-$$ LANGUAGE plpgsql;
-
--- Función 3: Calcular ventas totales por empleado en un rango de fechas
-CREATE OR REPLACE FUNCTION fn_ventas_por_empleado(p_id_e INTEGER, p_fecha_inicio DATE, p_fecha_fin DATE)
-RETURNS NUMERIC AS $$
-DECLARE
-    total_vendido NUMERIC(14,2);
-BEGIN
-    SELECT COALESCE(SUM(fn_calcular_total_venta(v.folio_v)), 0)
-    INTO total_vendido
-    FROM venta v
-    WHERE v.id_e = p_id_e
-    AND v.fecha BETWEEN p_fecha_inicio AND p_fecha_fin;
-    
-    RETURN total_vendido;
-END;
-$$ LANGUAGE plpgsql;
-
--- Función 4: Calcular valor total del inventario (Costo)
-CREATE OR REPLACE FUNCTION fn_valor_inventario_total()
-RETURNS NUMERIC AS $$
-DECLARE
-    valor_total NUMERIC(14,2);
-BEGIN
-    SELECT COALESCE(SUM(existencia * precio_c), 0)
-    INTO valor_total
-    FROM producto;
-    
-    RETURN valor_total;
-END;
-$$ LANGUAGE plpgsql;
-
-
--- ==========================================
--- 2. DISPARADORES (TRIGGERS)
--- ==========================================
-
--- Trigger 1: Actualizar stock al realizar una venta (Resta)
-CREATE OR REPLACE FUNCTION tf_actualizar_stock_venta()
-RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE producto
-    SET existencia = existencia - NEW.cantidad
-    WHERE codigo = NEW.codigo;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS tg_actualizar_stock_venta ON detalle_venta;
-CREATE TRIGGER tg_actualizar_stock_venta
-AFTER INSERT ON detalle_venta
-FOR EACH ROW
-EXECUTE FUNCTION tf_actualizar_stock_venta();
-
-
--- Trigger 2: Actualizar stock al realizar una compra (Suma)
-CREATE OR REPLACE FUNCTION tf_actualizar_stock_compra()
-RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE producto
-    SET existencia = existencia + NEW.cantidad
-    WHERE codigo = NEW.codigo;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS tg_actualizar_stock_compra ON detalle_compra;
-CREATE TRIGGER tg_actualizar_stock_compra
-AFTER INSERT ON detalle_compra
-FOR EACH ROW
-EXECUTE FUNCTION tf_actualizar_stock_compra();
-
-
--- Trigger 3: Verificar stock suficiente antes de vender
-CREATE OR REPLACE FUNCTION tf_verificar_stock_suficiente()
-RETURNS TRIGGER AS $$
-DECLARE
-    stock_actual INTEGER;
-BEGIN
-    SELECT existencia INTO stock_actual
-    FROM producto
-    WHERE codigo = NEW.codigo;
-    
-    IF stock_actual < NEW.cantidad THEN
-        RAISE EXCEPTION 'Stock insuficiente para el producto %. Disponible: %, Solicitado: %', NEW.codigo, stock_actual, NEW.cantidad;
-    END IF;
-    
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS tg_verificar_stock_suficiente ON detalle_venta;
-CREATE TRIGGER tg_verificar_stock_suficiente
-BEFORE INSERT ON detalle_venta
-FOR EACH ROW
-EXECUTE FUNCTION tf_verificar_stock_suficiente();
-
-
--- Trigger 4: Validar que el precio de venta sea mayor al precio de compra
-CREATE OR REPLACE FUNCTION tf_validar_precios_producto()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.precio_v <= NEW.precio_c THEN
-        RAISE EXCEPTION 'El precio de venta (%) debe ser mayor al precio de compra (%)', NEW.precio_v, NEW.precio_c;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS tg_validar_precios_producto ON producto;
-CREATE TRIGGER tg_validar_precios_producto
-BEFORE INSERT OR UPDATE ON producto
-FOR EACH ROW
-EXECUTE FUNCTION tf_validar_precios_producto();
--- Script para crear jerarquía de roles y usuarios en PostgreSQL
-
-SET search_path TO fruteria_db;
-
--- 1. Definir Roles Funcionales (NOLOGIN)
--- Función auxiliar para crear roles si no existen
-DO $$
-BEGIN
-    -- Rol Vendedor
-    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'rol_vendedor') THEN
-        CREATE ROLE rol_vendedor WITH NOLOGIN NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;
-    END IF;
-    
-    -- Rol Almacenista
-    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'rol_almacenista') THEN
-        CREATE ROLE rol_almacenista WITH NOLOGIN NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;
-    END IF;
-    
-    -- Rol Supervisor
-    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'rol_supervisor') THEN
-        CREATE ROLE rol_supervisor WITH NOLOGIN NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;
-    END IF;
-    
-    -- Rol Admin (Dueño)
-    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'rol_admin') THEN
-        CREATE ROLE rol_admin WITH NOLOGIN NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;
-    END IF;
-END
-$$;
-
--- 2. Asignar Permisos a los Roles Funcionales
-
--- Resetear permisos
-REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA fruteria_db FROM rol_vendedor, rol_almacenista, rol_supervisor, rol_admin;
-REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA fruteria_db FROM rol_vendedor, rol_almacenista, rol_supervisor, rol_admin;
-
--- Permisos Comunes (Uso de esquema y secuencias)
-GRANT USAGE ON SCHEMA fruteria_db TO rol_vendedor, rol_almacenista, rol_supervisor, rol_admin;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA fruteria_db TO rol_vendedor, rol_almacenista, rol_supervisor, rol_admin;
-
--- Permisos VENDEDOR
--- producto: R
-GRANT SELECT ON producto TO rol_vendedor;
--- venta: C, R
-GRANT INSERT, SELECT ON venta TO rol_vendedor;
--- detalle_venta: C, R
-GRANT INSERT, SELECT ON detalle_venta TO rol_vendedor;
--- cliente (y p_fisica/moral): C, R, U
-GRANT INSERT, SELECT, UPDATE ON cliente, p_fisica, p_moral TO rol_vendedor;
-
--- Permisos ALMACENISTA
--- producto: R, U
-GRANT INSERT, SELECT, UPDATE ON producto TO rol_almacenista;
--- compra: C, R, U, D
-GRANT INSERT, SELECT, UPDATE, DELETE ON compra TO rol_almacenista;
--- detalle_compra: C, R, U, D
-GRANT INSERT, SELECT, UPDATE, DELETE ON detalle_compra TO rol_almacenista;
--- proveedor: C, R, U, D
-GRANT INSERT, SELECT, UPDATE, DELETE ON proveedor TO rol_almacenista;
--- producto_proveedor: C, R, U, D
-GRANT INSERT, SELECT, UPDATE, DELETE ON producto_proveedor TO rol_almacenista;
-
--- Permisos SUPERVISOR
--- producto: C, R, U, D
-GRANT INSERT, SELECT, UPDATE, DELETE ON producto TO rol_supervisor;
--- venta: C, R, U, D
-GRANT INSERT, SELECT, UPDATE, DELETE ON venta TO rol_supervisor;
--- detalle_venta: C, R, U, D
-GRANT INSERT, SELECT, UPDATE, DELETE ON detalle_venta TO rol_supervisor;
--- cliente (y p_fisica/moral): C, R, U, D
-GRANT INSERT, SELECT, UPDATE, DELETE ON cliente, p_fisica, p_moral TO rol_supervisor;
--- compra: C, R, U, D
-GRANT INSERT, SELECT, UPDATE, DELETE ON compra TO rol_supervisor;
--- detalle_compra: C, R, U, D
-GRANT INSERT, SELECT, UPDATE, DELETE ON detalle_compra TO rol_supervisor;
--- proveedor: C, R, U, D
-GRANT INSERT, SELECT, UPDATE, DELETE ON proveedor TO rol_supervisor;
--- producto_proveedor: C, R, U, D
-GRANT INSERT, SELECT, UPDATE, DELETE ON producto_proveedor TO rol_supervisor;
--- empleado: R
-GRANT SELECT ON empleado TO rol_supervisor;
-
--- Permisos ADMIN
--- Total
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA fruteria_db TO rol_admin;
-
-
--- 3. Crear Usuarios y Asignar Roles (Herencia)
-
-CREATE OR REPLACE FUNCTION gestionar_usuario_jerarquico(nombre_usuario text, password_usuario text, rol_asignar text)
-RETURNS void AS $$
-BEGIN
-    -- Crear usuario si no existe
-    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = nombre_usuario) THEN
-        EXECUTE format('CREATE USER %I WITH PASSWORD %L LOGIN', nombre_usuario, password_usuario);
-    ELSE
-        EXECUTE format('ALTER USER %I WITH PASSWORD %L', nombre_usuario, password_usuario);
-    END IF;
-
-    -- Asignar el rol funcional correspondiente
-    -- Primero removemos membresías anteriores para evitar mezclas
-    EXECUTE format('REVOKE rol_vendedor, rol_almacenista, rol_supervisor, rol_admin FROM %I', nombre_usuario);
-    
-    -- Asignamos el nuevo rol
-    EXECUTE format('GRANT %I TO %I', rol_asignar, nombre_usuario);
-    
-    -- Permitir que postgres haga SET ROLE
-    EXECUTE format('GRANT %I TO postgres', nombre_usuario);
-END;
-$$ LANGUAGE plpgsql;
-
--- Asignación de Roles a Usuarios Específicos
-SELECT gestionar_usuario_jerarquico('admin', '123', 'rol_admin');
-SELECT gestionar_usuario_jerarquico('edwin', '123', 'rol_admin');
-
-SELECT gestionar_usuario_jerarquico('marial', '123', 'rol_supervisor');
-
-SELECT gestionar_usuario_jerarquico('juanp', '123', 'rol_vendedor');
-SELECT gestionar_usuario_jerarquico('carlosr', '123', 'rol_vendedor');
-
-SELECT gestionar_usuario_jerarquico('pedroa', '123', 'rol_almacenista');
-
--- Limpieza
-DROP FUNCTION gestionar_usuario_jerarquico(text, text, text);
 SET search_path TO fruteria_db;
 
 -- Trigger 1: Actualizar stock al realizar una venta (Resta)
