@@ -10,7 +10,7 @@ DB_CONFIG = {
     "password": os.getenv("DB_PASSWORD", "9474609"),
     "host": os.getenv("DB_HOST", "localhost"),
     "port": os.getenv("DB_PORT", "5432"),
-    "options": "-c search_path=fruteria_db,public",
+    "options": "-c search_path=fruteria_db",
 }
 
 # En producción (Supabase/Render) se requiere SSL
