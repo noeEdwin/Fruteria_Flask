@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from config.db import get_db
 from app.models.user import User
 import psycopg2
+from werkzeug.security import check_password_hash
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -21,7 +22,7 @@ def login():
                 cur.execute("SELECT rol, password FROM empleado WHERE username = %s", (username,))
                 res = cur.fetchone()
                 
-            if res and res['password'] == password:
+            if res and check_password_hash(res['password'], password):
                 # Login Exitoso
                 session["db_user"] = username
                 user = User.get(username)

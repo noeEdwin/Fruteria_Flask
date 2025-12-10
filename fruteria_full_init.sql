@@ -54,7 +54,7 @@ CREATE TABLE empleado(
     turno VARCHAR(20),
     salario NUMERIC(14,2),
     username VARCHAR(150) UNIQUE,
-    password VARCHAR(100) DEFAULT '123',
+    password VARCHAR(200) DEFAULT 'scrypt:32768:8:1$UMogPytNgAY8Aigq$8ea1a93d0b636fab7db131721976971d4850a0527e4cb45513084ca9ad5e1c9153006a2a9eb36155b083fa284ac120b8afea721dec7e1de93177ac3d111be666',
     rol VARCHAR(20) DEFAULT 'vendedor',
     last_login TIMESTAMP WITH TIME ZONE,
     is_active BOOLEAN DEFAULT true
