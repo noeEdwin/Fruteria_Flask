@@ -81,7 +81,14 @@ def dashboard():
         })
     
     # Format current date
-    now = datetime.datetime.now().strftime("%d %B, %Y")
+    # Format current date in Spanish
+    current_date = datetime.datetime.now()
+    meses_es = {
+        1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+        5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+        9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+    }
+    now = f"{current_date.day:02d} de {meses_es[current_date.month]} de {current_date.year}"
     
     return render_template("dashboard.html", 
                            user=current_user, 
