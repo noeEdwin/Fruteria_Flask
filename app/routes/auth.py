@@ -65,11 +65,16 @@ def dashboard():
     top_categories_raw = get_top_categories()
     daily_stats = get_daily_stats()
     
-    # Process data for JSON serialization
+   # Traducir los días de la semana de inglés a español
+    dia_map = {
+        'Sun': 'Dom', 'Mon': 'Lun', 'Tue': 'Mar', 'Wed': 'Mié',
+        'Thu': 'Jue', 'Fri': 'Vie', 'Sat': 'Sáb'
+    }
     weekly_sales = []
     for item in weekly_sales_raw:
+        dia_en = item['dia_nombre']
         weekly_sales.append({
-            'dia_nombre': item['dia_nombre'],
+            'dia_nombre': dia_map.get(dia_en, dia_en),
             'total': float(item['total']) if item['total'] else 0.0
         })
         
@@ -80,8 +85,8 @@ def dashboard():
             'total_vendido': int(item['total_vendido']) if item['total_vendido'] else 0
         })
     
-    # Format current date
-    # Format current date in Spanish
+    
+    # Fecha en español
     current_date = datetime.datetime.now()
     meses_es = {
         1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
