@@ -13,28 +13,33 @@ def login():
         password = request.form.get("password", "")
 
         try:
-            conn = get_db(user=username, password=password)
-            conn.close()
+            # 1. Conexión como Service Role (postgres)
+            conn = get_db() 
             
-            session["db_user"] = username
+            # 2. Verificar credenciales en tabla empleado
+            with conn.cursor() as cur:
+                cur.execute("SELECT rol, password FROM empleado WHERE username = %s", (username,))
+                res = cur.fetchone()
+                
+            if res and res['password'] == password:
+                # Login Exitoso
+                session["db_user"] = username
+                user = User.get(username)
+                login_user(user)
+                flash(f"Bienvenido, {user.username}", "success")
+                
+                # Redirección basada en rol
+                if user.rol == 'vendedor':
+                    return redirect(url_for('ventas.nueva_venta'))
+                elif user.rol == 'almacenista':
+                    return redirect(url_for('products.productos'))
+                
+                return redirect(url_for("auth.dashboard"))
+            else:
+                flash("Usuario o contraseña incorrectos", "danger")
             
-            user = User.get(username)
-            login_user(user)
-            
-            flash(f"Bienvenido, {user.username}", "success")
-            
-            # Redirección basada en rol
-            if user.rol == 'vendedor':
-                return redirect(url_for('ventas.nueva_venta'))
-            elif user.rol == 'almacenista':
-                return redirect(url_for('products.productos'))
-            
-            return redirect(url_for("auth.dashboard"))
-            
-        except psycopg2.OperationalError:
-            flash("Usuario o contraseña incorrectos (DB Auth Failed)", "danger")
         except Exception as e:
-             flash(f"Error de conexión: {e}", "danger")
+             flash(f"Error de sistema: {e}", "danger")
 
     return render_template("login.html")
 

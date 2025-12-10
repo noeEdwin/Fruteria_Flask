@@ -1200,3 +1200,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Otorgar permiso de ejecución a los roles
 GRANT EXECUTE ON FUNCTION get_empleado_nombre(INTEGER) TO rol_almacenista, rol_vendedor, rol_supervisor, rol_admin;
+
+-- PATCH: Add password column for Application-Level Auth
+SET search_path TO fruteria_db;
+ALTER TABLE empleado ADD COLUMN password VARCHAR(100) DEFAULT '123';
+UPDATE empleado SET password = '123';
