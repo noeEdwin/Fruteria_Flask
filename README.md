@@ -1,4 +1,4 @@
-# Frutería "La Fresquita" - Backend & Base de Datos
+# Frutería - Backend & Base de Datos
 
 Este documento detalla la arquitectura del backend, el diseño de la base de datos y la implementación técnica que garantiza el cumplimiento de los requerimientos del Proyecto Integrador.
 
