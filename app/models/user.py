@@ -11,19 +11,19 @@ class User(UserMixin):
 
     @property
     def es_admin(self):
-        return self.rol == 'admin'
+        return self.rol in ['admin', 'administrador']
 
     @property
     def es_supervisor(self):
-        return self.rol in ['admin', 'supervisor']
+        return self.rol in ['admin', 'administrador', 'supervisor']
 
     @property
     def es_almacenista(self):
-        return self.rol in ['admin', 'supervisor', 'almacenista']
+        return self.rol in ['admin', 'administrador', 'supervisor', 'almacenista']
 
     @property
     def es_vendedor(self):
-        return self.rol in ['admin', 'supervisor', 'vendedor']
+        return self.rol in ['admin', 'administrador', 'supervisor', 'vendedor']
 
     @staticmethod
     def get(username):

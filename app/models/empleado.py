@@ -43,17 +43,32 @@ class Empleado:
             password = data['password']
             rol = data['rol']
 
+            # Mapping app roles to Postgres roles
+            role_map = {
+                'vendedor': 'rol_vendedor',
+                'almacenista': 'rol_almacenista',
+                'supervisor': 'rol_supervisor',
+                'administrador': 'rol_admin',
+                'admin': 'rol_admin' 
+            }
+            pg_role = role_map.get(rol, 'rol_vendedor') # Default fallback
+
             cur.execute("RESET ROLE")
 
             # Crear usuario con contraseña y asignarlo al grupo (rol) 
-            cur.execute(f'CREATE USER "{username}" WITH PASSWORD \'{password}\' IN ROLE "{rol}"')
+            cur.execute(f'CREATE USER "{username}" WITH PASSWORD \'{password}\' IN ROLE "{pg_role}"')
+
+            # Calcular siguiente ID
+            cur.execute("SELECT COALESCE(MAX(id_e), 0) + 1 as next_id FROM empleado")
+            row = cur.fetchone()
+            next_id = row['next_id'] if row else 1
 
             # 2. Insertar en la tabla empleado
             cur.execute("""
                 INSERT INTO empleado (id_e, nombre, turno, salario, username, rol, is_active)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
             """, (
-                data['id_e'],
+                next_id,
                 data['nombre'],
                 data['turno'],
                 data['salario'],
@@ -90,9 +105,19 @@ class Empleado:
                 # 4. Actualizar Rol si cambió
                 if old_rol != new_rol:
                     # REVOKE viejo, GRANT nuevo
+                    role_map = {
+                        'vendedor': 'rol_vendedor',
+                        'almacenista': 'rol_almacenista',
+                        'supervisor': 'rol_supervisor',
+                        'administrador': 'rol_admin',
+                        'admin': 'rol_admin'
+                    }
+                    old_pg_role = role_map.get(old_rol, 'rol_vendedor')
+                    new_pg_role = role_map.get(new_rol, 'rol_vendedor')
+
                     target_user = new_username
-                    cur.execute(f'REVOKE "{old_rol}" FROM "{target_user}"')
-                    cur.execute(f'GRANT "{new_rol}" TO "{target_user}"')
+                    cur.execute(f'REVOKE "{old_pg_role}" FROM "{target_user}"')
+                    cur.execute(f'GRANT "{new_pg_role}" TO "{target_user}"')
 
             # 5. Actualizar la tabla
             cur.execute("""
